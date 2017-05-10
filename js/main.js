@@ -15,7 +15,7 @@ class Dnd{
       this.map = new RectMap(target, 15, 15, 64, 64);
       var toolbar = new Toolbar(target, this.map);
       this.toolbar = toolbar;
-      this.map.on("click", function(evt){toolbar.onClick(toolbar, evt);});
+      this.map.on("click", function(evt){toolbar.onClick(evt);});
   }
   gotScript(lib){
     if(lib == "map"){
