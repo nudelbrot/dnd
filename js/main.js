@@ -13,8 +13,9 @@ class Dnd{
   }
   finishedLoading(){
       this.map = new RectMap(target, 15, 15, 64, 64);
-      this.map.on("click", function(evt){console.debug(evt);});
-      this.map.on("mouseDown", function(evt){console.debug(evt);});
+      var toolbar = new Toolbar(target, this.map);
+      this.toolbar = toolbar;
+      this.map.on("click", function(evt){toolbar.onClick(toolbar, evt);});
   }
   gotScript(lib){
     if(lib == "map"){

@@ -54,7 +54,7 @@ class RectMap {
     for(var i = 0; i < this.height; ++i){
       var d = [];
       for(var j = 0; j < this.width; ++j){
-        d.push(new Cell(j, i, this.cellWidth, this.cellHeight));
+        d.push(new Cell(i, j, this.cellWidth, this.cellHeight));
       }
       this.data.push(d);
     }
