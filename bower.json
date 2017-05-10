@@ -1,0 +1,28 @@
+{
+  "name": "dnd",
+  "homepage": "https://github.com/nudelbrot/dnd",
+  "authors": [
+    "Jenso <baj3ns@gmail.com>"
+  ],
+  "description": "dnd map creation tool",
+  "main": "index.html",
+  "keywords": [
+    "dnd",
+    "map",
+    "dungeon",
+    "world",
+    "tool"
+  ],
+  "license": "GNU GPLv3",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7"
+  }
+}
