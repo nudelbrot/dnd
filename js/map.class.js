@@ -9,8 +9,7 @@ class Cell {
     this.strokeStyle = "#000000";
     this.lineWidth = 1;
   }
-  render(ctx){
-    ctx.moveTo(0,0);
+  render(ctx, stroke=true){
     ctx.lineWidth = this.lineWidth;
     ctx.fillStyle = this.fillStyle;
     ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth, this.cellHeight);
@@ -32,7 +31,6 @@ class Cell {
       ctx.moveTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight);
       ctx.lineTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight + this.cellHeight);
     }
-    ctx.stroke();
   }
 }
 
@@ -64,12 +62,14 @@ class RectMap {
 
   render(){
     var ctx = this.canvas.getContext("2d");
+    ctx.beginPath();
     ctx.moveTo(0,0);
     for(var i = 0; i < this.height; ++i){
       for(var j = 0; j < this.width; ++j){
-        this.data[i][j].render(ctx);
+        this.data[i][j].render(ctx, false);
       }
     }
+    ctx.closePath();
     ctx.stroke();
   }
   on(trigger, action){
