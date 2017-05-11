@@ -100,8 +100,8 @@ class RectMap {
     ctx.moveTo(0,0);
     for(var i = 0; i < this.height; ++i){
       for(var j = 0; j < this.width; ++j){
-        var x = this.translation.x/this.cellWidth + j;
-        var y = this.translation.y/this.cellHeight + i;
+        var x = j - this.translation.x/this.cellWidth;
+        var y =  i - this.translation.y/this.cellHeight;
         var key = x + "/" + y;
         if(this.data[key]){
           this.data[key].render(ctx, true);
