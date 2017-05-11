@@ -4,10 +4,12 @@ class Cell {
     this.y = y;
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
-    this.wall = {top: true, bottom: true, left: true, right: true};
+    this.wall = {top: false, bottom: false, left: false, right: false};
     this.fillStyle = "#d0d0d0";
     this.strokeStyle = "#000000";
     this.lineWidth = 1;
+    this.highlight = false;
+    this.highlightStyle = ""
   }
   render(ctx, stroke=true){
     ctx.lineWidth = this.lineWidth;
@@ -52,6 +54,7 @@ class RectMap {
     this.cellWidth = cellWidth? cellWidth : 64;
     this.cellHeight = cellHeight? cellHeight : 64;
     this.translation = {x: 0, y: 0};
+    this.scaleLevel = 1.0;
 
     this.data = [];
     //for(var i = 0; i < this.height; ++i){
@@ -68,7 +71,6 @@ class RectMap {
   drawGrid(){
     var ctx = this.canvas.getContext("2d");
     ctx.globalCompositeOperation = "copy";
-    ctx.beginPath();
     ctx.moveTo(this.translation.x, this.translation.y);
     ctx.strokeStyle = "black";
     ctx.lineWidth = 1;
@@ -91,6 +93,25 @@ class RectMap {
       this.data[key] = new Cell(x, y, this.cellWidth, this.cellHeight);
       return this.data[key];
     }
+  }
+
+  scale(mode){
+    //this.canvas.getContext("2d").scale(1/this.scaleLevel, 1/this.scaleLevel);
+    //if(mode == "in"){
+    // this.scaleLevel += 0.1;
+    //}else if(mode == "out"){
+    // this.scaleLevel -= 0.1;
+    //}else{
+    // this.scaleLevel = 1;
+    //}
+    //var scaledTranslation = {x: Math.floor(this.translation.x / this.scaleLevel), y: Math.floor(this.translation.y / this.scaleLevel)};
+    //this.translate(-this.translation.x, -this.translation.y);
+    //this.canvas.getContext("2d").scale(this.scaleLevel, this.scaleLevel);
+    //this.translate(scaledTranslation.x, scaledTranslation.y);
+
+    //this.drawGrid();
+    //this.render();
+    //console.debug(this.scaleLevel, this.translation);
   }
 
   render(){
