@@ -16,7 +16,7 @@ class Tool {
   }
 
   evtToCoordinates(evt){
-    return {x: evt.offsetX / this.map.cellWidth, y:evt.offsetY / this.map.cellHeight};
+    return {x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y)/ this.map.cellHeight};
   }
 
 }
@@ -33,6 +33,10 @@ class RectSelectionTool extends SelectionTool {
     super(map);
     this.icon = "crop_free";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
+    var t = this;
+    this.button.on("click", function(){
+      t.map.translate(-24,0);
+    });
   }
 }
 
@@ -41,6 +45,22 @@ class MagicStickTool extends SelectionTool {
     super(map);
     this.icon = "open_with";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
+    var t = this;
+    this.button.on("click", function(){
+      t.map.translate(24,0);
+    });
+
+  }
+  onMouseMove(evt){
+    
+  }
+
+  onMouseDown(evt){
+    this.mouseDown = true;
+  }
+
+  onMouseUp(evt){
+    this.mouseDown = false;
   }
 }
 
@@ -80,9 +100,16 @@ class PencilTool extends SculptureTool {
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
-    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.foregroundColor;
-    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
+    pos.x = Math.floor(pos.x);
+    pos.y = Math.floor(pos.y);
+    if(evt.type == "click"){
+        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+    }else{
+        this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
+    }
+        this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
     //this.map.render();
+
   }
   onMouseMove(evt){
     if(this.mouseDown){
@@ -92,8 +119,8 @@ class PencilTool extends SculptureTool {
       if(this.latest.x != pos.x || this.latest.y != pos.y){
         this.latest.x = pos.x;
         this.latest.y = pos.y;
-        this.map.data[pos.x][pos.y].fillStyle = this.foregroundColor;
-        this.map.data[pos.x][pos.y].render(this.map.canvas.getContext("2d"));
+        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+        this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
       }
     }
   }
@@ -187,7 +214,9 @@ class Toolbar {
     this.addColorpickers();
     this.addTools();
     target.append(this.panel[0]);
+    var t = this;
     $(this.map.canvas).bind('contextmenu', function(e) {
+        t.onClick(e);
           return false;
     }); 
   }
