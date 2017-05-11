@@ -161,11 +161,9 @@ class BucketTool extends SculptureTool {
   floodFill(x, y) {
       console.debug("flood: " + x + ", " + y)
       this.fillPixel(x, y);
-      var counter = 0;
-      while (this.Stack.length > 0 && counter < 100) {
+      while (this.Stack.length > 0) {
           this.toFill = this.Stack.pop();
           this.fillPixel(this.toFill[0], this.toFill[1]);
-          counter++;
       }
   }
 
