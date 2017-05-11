@@ -47,23 +47,9 @@ class MagicStickTool extends SelectionTool {
 class SculptureTool extends Tool {
   constructor(map) {
     super(map);
-    this.color = "black";
+    this.foregroundColor = "#000000";
+    this.backgroundColor = "#ffffff";
     this.latestColors = [];
-    this.addColorpicker();
-  }
-  addColorpicker(){
-    var body = this.panel.find(".panel-body");
-    this.colorpicker = $('<div id="cp8" data-format="alias" class="input-group colorpicker-component">'
-      +'<input type="text" value="primary" class="form-control" />'
-      +'<span class="input-group-addon"><i></i></span>'
-      +'</div>');
-    var t = this;
-    this.colorpicker.colorpicker().on("changeColor", function(e){
-      if(e.value){
-        t.color = e.value;
-      }
-    });
-    body.append(this.colorpicker);
   }
   addSize(){
     var body = this.panel.find(".panel-body");
@@ -79,7 +65,7 @@ class PickerTool extends SculptureTool {
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
-    this.colorpicker.colorpicker("setValue", this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle);
+    //this.colorpicker.colorpicker("setValue", this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle);
   }
 }
 
@@ -94,7 +80,7 @@ class PencilTool extends SculptureTool {
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
-    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.color;
+    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.foregroundColor;
     this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
     //this.map.render();
   }
@@ -106,7 +92,7 @@ class PencilTool extends SculptureTool {
       if(this.latest.x != pos.x || this.latest.y != pos.y){
         this.latest.x = pos.x;
         this.latest.y = pos.y;
-        this.map.data[pos.x][pos.y].fillStyle = this.color;
+        this.map.data[pos.x][pos.y].fillStyle = this.foregroundColor;
         this.map.data[pos.x][pos.y].render(this.map.canvas.getContext("2d"));
       }
     }
@@ -175,9 +161,10 @@ class BucketTool extends SculptureTool {
     }
     var t = this;
     lst.forEach(function(v){
-      t.map.data[v.x][v.y].fillStyle = t.color;
-      t.map.data[v.x][v.y].render(ctx);
+      t.map.data[v.x][v.y].fillStyle = t.foregroundColor;
+      //t.map.data[v.x][v.y].render(ctx);
     });
+      t.map.render();
   }
 }
 
@@ -189,16 +176,28 @@ class HeightTool extends SculptureTool {
 
 class Toolbar {
   constructor(target, map) {
+    this.map = map;
     this.panel = $("<div id='tb_panel' class='panel panel-default'></div>");
     this.panel.css("float", "left");
     this.panel.css("width", 300);
     this.panel.css("height", 512);
-    var panelBody = $("<div class='panel-body'></div>");
-    this.rectSelector = new RectSelectionTool(map);
-    this.magicStick = new MagicStickTool(map);
-    this.pencil = new PencilTool(map);
-    this.picker = new PickerTool(map);
-    this.bucket = new BucketTool(map);
+    this.panel.append($("<div id='tb_body' class='panel-body'></div>"));
+    this.foregroundColor = "#000000";
+    this.backgroundColor = "#ffffff";
+    this.addColorpickers();
+    this.addTools();
+    target.append(this.panel[0]);
+    $(this.map.canvas).bind('contextmenu', function(e) {
+          return false;
+    }); 
+  }
+
+  addTools(){
+    this.rectSelector = new RectSelectionTool(this.map);
+    this.magicStick = new MagicStickTool(this.map);
+    this.pencil = new PencilTool(this.map);
+    this.picker = new PickerTool(this.map);
+    this.bucket = new BucketTool(this.map);
     var grp = $('<div class="btn-group" role="group"></div>');
 
     grp.append(this.rectSelector.button);
@@ -225,11 +224,39 @@ class Toolbar {
     });
 
     this.activeTool = this.pencil;
-    this.setActiveTool(this.pencil);
-    this.panel.append(grp);
-    this.panel.append(panelBody);
+    //this.setActiveTool(this.pencil);
+    var body = this.panel.find("#tb_body");
+    body.append(grp);
+    
+  }
 
-    target.append(this.panel[0]);
+  addColorpickers(){
+    var body = this.panel.find(".panel-body");
+    this.foregroundColorPicker = $('<div id="fgCp" data-format="alias" class="input-group colorpicker-component">'
+      +'<input type="text" value="primary" class="form-control" />'
+      +'<span class="input-group-addon"><i></i></span>'
+      +'</div>');
+    this.backgroundColorPicker = $('<div id="bgCp" data-format="alias" class="input-group colorpicker-component">'
+      +'<input type="text" value="primary" class="form-control" />'
+      +'<span class="input-group-addon"><i></i></span>'
+      +'</div>');
+    var t = this;
+    this.foregroundColorPicker.colorpicker().on("changeColor", function(e){
+      if(e.value){
+        t.foregroundColor = e.value;
+        t.pencil.foregroundColor = e.value;
+        t.bucket.foregroundColor = e.value;
+      }
+    });
+    this.backgroundColorPicker.colorpicker().on("changeColor", function(e){
+      if(e.value){
+        t.backgroundColor = e.value;
+        t.pencil.backgroundColor = e.value;
+        t.bucket.backgroundColor = e.value;
+      }
+    });
+    body.append(this.foregroundColorPicker);
+    body.append(this.backgroundColorPicker);
   }
 
   setActiveTool(tool){
