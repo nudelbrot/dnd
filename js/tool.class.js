@@ -101,11 +101,13 @@ class PencilTool extends SculptureTool {
   onMouseMove(evt){
     if(this.mouseDown){
       var pos = this.evtToCoordinates(evt);
-      if(this.latest.x != pos.x && this.latest.y != pos.y){
+      pos.x = Math.floor(pos.x);
+      pos.y = Math.floor(pos.y);
+      if(this.latest.x != pos.x || this.latest.y != pos.y){
         this.latest.x = pos.x;
         this.latest.y = pos.y;
-        this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.color;
-        this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
+        this.map.data[pos.x][pos.y].fillStyle = this.color;
+        this.map.data[pos.x][pos.y].render(this.map.canvas.getContext("2d"));
       }
     }
   }

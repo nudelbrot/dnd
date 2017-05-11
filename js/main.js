@@ -12,7 +12,7 @@ class Dnd{
     $.getScript("js/tool.class.js", function(){t.gotScript("tools");});
   }
   finishedLoading(){
-      this.map = new RectMap(target, 15, 15, 64, 64);
+      this.map = new RectMap(target, 52, 52, 16, 16);
       var toolbar = new Toolbar(target, this.map);
       this.toolbar = toolbar;
       this.map.on("click", function(evt){toolbar.onClick(evt);});
