@@ -137,61 +137,58 @@ class BucketTool extends SculptureTool {
   constructor(map) {
     super(map);
     this.icon = "format_color_fill";
-    this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
+    this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+    this.Stack = [];
+    this.cellsToFill = [];
+    this.old;
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
-    var old = this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle;
-    var neighbors = [];
-    var lst = [];
-    neighbors.push({x: Math.floor(pos.x), y: Math.floor(pos.y)});
-    var ctx = this.map.canvas.getContext("2d")
-    while(neighbors.length > 0){
-      var n = neighbors.pop();
-      lst.push(n);
-      if(n.x - 1 >= 0 && this.map.data[n.x - 1][n.y].fillStyle == old){
-        var found = false;
-        lst.forEach(function(v){
-          found = found || ((v.x == n.x - 1) && (v.y == n.y));
-        });
-        if(!found){
-          neighbors.push({x: n.x - 1, y: n.y});
-        }
-      }
-      if(n.y - 1 >= 0 && this.map.data[n.x][n.y - 1].fillStyle == old){
-        var found = false;
-        lst.forEach(function(v){
-          found = found || ((v.x == n.x) && (v.y == n.y - 1));
-        });
-        if(!found){
-          neighbors.push({x: n.x, y: n.y - 1});
-        }
-      }
-      if(n.x + 1 < this.map.width && this.map.data[n.x + 1][n.y].fillStyle == old){
-        var found = false;
-        lst.forEach(function(v){
-          found = found || ((v.x == n.x + 1) && (v.y == n.y));
-        });
-        if(!found){
-          neighbors.push({x: n.x + 1, y: n.y});
-        }
-      }
-      if(n.y + 1 < this.map.height && this.map.data[n.x][n.y + 1].fillStyle == old){
-        var found = false;
-        lst.forEach(function(v){
-          found = found || ((v.x == n.x) && (v.y == n.y + 1));
-        });
-        if(!found){
-          neighbors.push({x: n.x, y: n.y + 1});
-        }
-      }
-    }
+    pos = [Math.floor(pos.x), Math.floor(pos.y)];
+    this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
+    console.debug(this.old)
+    this.cellsToFill = [pos];
+    this.Stack = [];
+    console.debug("Start flooding")
+    this.floodFill(pos[0], pos[1]);
+    console.debug("Ended flooding: ", this.cellsToFill);
     var t = this;
-    lst.forEach(function(v){
-      t.map.data[v.x][v.y].fillStyle = t.foregroundColor;
-      //t.map.data[v.x][v.y].render(ctx);
-    });
-      t.map.render();
+    this.cellsToFill.forEach(function (coord) {
+        var cell = t.map.getCell(coord[0], coord[1])
+        cell.fillStyle = t.foregroundColor;
+    })
+    var ctx = this.map.canvas.getContext("2d")
+    t.map.render();
+  }
+
+  floodFill(x, y) {
+      console.debug("flood: " + x + ", " + y)
+      this.fillPixel(x, y);
+      var counter = 0;
+      while (this.Stack.length > 0 && counter < 100) {
+          this.toFill = this.Stack.pop();
+          this.fillPixel(this.toFill[0], this.toFill[1]);
+          counter++;
+      }
+  }
+
+  fillPixel(x, y) {
+      if (!this.alreadyFilled(x, y)) this.fill(x, y);
+
+      if (!this.alreadyFilled(x, y - 1)) this.Stack.push([x, y - 1]);
+      if (!this.alreadyFilled(x + 1, y)) this.Stack.push([x + 1, y]);
+      if (!this.alreadyFilled(x, y + 1)) this.Stack.push([x, y + 1]);
+      if (!this.alreadyFilled(x - 1, y)) this.Stack.push([x - 1, y]);
+  }
+
+  fill(x, y) {
+      this.cellsToFill.push([x, y]);
+  }
+
+  alreadyFilled(x, y) {
+      console.debug("already filled: " + x + "/" + y + " pixel color: " + this.map.getCell(x, y).fillStyle + " old color: " + this.old);
+      console.debug($.inArray([1, 1], [[1, 1]]));
+      return (this.map.getCell(x, y).fillStyle != this.old || $.inArray(x+"/"+y, this.cellsToFill.map(function(obj){return obj[0]+"/"+obj[1]})) != -1);
   }
 }
 
