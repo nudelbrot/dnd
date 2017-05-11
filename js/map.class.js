@@ -31,6 +31,9 @@ class Cell {
       ctx.moveTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight);
       ctx.lineTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight + this.cellHeight);
     }
+    if(stroke){
+      ctx.stroke();
+    }
   }
 }
 
