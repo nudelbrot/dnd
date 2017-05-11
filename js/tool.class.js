@@ -3,6 +3,8 @@ class Tool {
     this.map = map;
     this.icon = "";
     this.button = undefined;
+    this.panel = $("<div class='panel panel-default toolSettings'></div>");
+    this.panel.append($("<div class='panel-body'></div>"));
   }
   onMouseMove(self, evt){
   }
@@ -47,21 +49,24 @@ class SculptureTool extends Tool {
     super(map);
     this.color = "black";
   }
-}
+  addColorpicker(){
+    var body = this.panel.find(".panel-body");
+    this.colorpicker = $('<div id="cp8" data-format="alias" class="input-group colorpicker-component">'
+      +'<input type="text" value="primary" class="form-control" />'
+      +'<span class="input-group-addon"><i></i></span>'
+      +'</div>');
+    var t = this;
+    this.colorpicker.colorpicker().on("changeColor", function(e){
+      if(e.value){
+        t.color = e.value;
+      }
+    });
+    body.append(this.colorpicker);
+  }
+  addSize(){
+    var body = this.panel.find(".panel-body");
+  }
 
-class PencilTool extends SculptureTool {
-  constructor(map) {
-    super(map);
-    this.size = 1;
-    this.icon = "edit"
-    this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-  }
-  onClick(evt){
-    var pos = this.evtToCoordinates(evt);
-    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = "black";
-    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
-    //this.map.render();
-  }
 }
 
 class PickerTool extends SculptureTool {
@@ -72,11 +77,28 @@ class PickerTool extends SculptureTool {
   }
 }
 
+class PencilTool extends SculptureTool {
+  constructor(map) {
+    super(map);
+    this.size = 1;
+    this.icon = "edit"
+    this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
+    this.addColorpicker();
+  }
+  onClick(evt){
+    var pos = this.evtToCoordinates(evt);
+    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.color;
+    this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
+    //this.map.render();
+  }
+}
+
 class BucketTool extends SculptureTool {
   constructor(map) {
     super(map);
     this.icon = "format_color_fill";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
+    this.addColorpicker();
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
@@ -141,13 +163,11 @@ class HeightTool extends SculptureTool {
 
 class Toolbar {
   constructor(target, map) {
-    var div = $("<div id='tb_panel'></div>");
-    div.addClass("panel panel-default");
-    div.css("float", "left");
-    div.css("width", 300);
-    div.css("height", 512);
-    this.panel = $("<div></div>");
-    this.panel.addClass("panel-body");
+    this.panel = $("<div id='tb_panel' class='panel panel-default'></div>");
+    this.panel.css("float", "left");
+    this.panel.css("width", 300);
+    this.panel.css("height", 512);
+    var panelBody = $("<div class='panel-body'></div>");
     this.rectSelector = new RectSelectionTool(map);
     this.magicStick = new MagicStickTool(map);
     this.pencil = new PencilTool(map);
@@ -163,38 +183,37 @@ class Toolbar {
     var t = this;
 
     this.rectSelector.button.on("click", function(){
-      div.find(".btn").removeClass("btn-primary");
-      t.rectSelector.button.addClass("btn-primary");
-      t.activeTool = t.rectSelector;
+      t.setActiveTool(t.rectSelector);
     });
     this.magicStick.button.on("click", function(){
-      div.find(".btn").removeClass("btn-primary");
-      t.magicStick.button.addClass("btn-primary");
-      t.activeTool = t.magicStick;
+      t.setActiveTool(t.magicStick);
     });
     this.pencil.button.on("click", function(){
-      div.find(".btn").removeClass("btn-primary");
-      t.pencil.button.addClass("btn-primary");
-      t.activeTool = t.pencil;
+      t.setActiveTool(t.pencil);
     });
     this.picker.button.on("click", function(){
-      div.find(".btn").removeClass("btn-primary");
-      t.picker.button.addClass("btn-primary");
-      t.activeTool = t.picker;
+      t.setActiveTool(t.picker);
     });
     this.bucket.button.on("click", function(){
-      div.find(".btn").removeClass("btn-primary");
-      t.bucket.button.addClass("btn-primary");
-      t.activeTool = t.bucket;
+      t.setActiveTool(t.bucket);
     });
 
-    this.panel.append(grp);
     this.activeTool = this.pencil;
-    this.activeTool.button.addClass("btn-primary");
-    div.append(this.panel);
+    this.setActiveTool(this.pencil);
+    this.panel.append(grp);
+    this.panel.append(panelBody);
 
-    target.append(div[0]);
+    target.append(this.panel[0]);
   }
+
+  setActiveTool(tool){
+    this.activeTool.panel.detach();
+    this.activeTool = tool;
+    this.panel.find(".btn").removeClass("btn-primary");
+    tool.button.addClass("btn-primary");
+    this.panel.find(".panel-body").append(this.activeTool.panel);
+  }
+
   onMouseMove(evt){
     this.activeTool.onMouseMove(evt);
   }
