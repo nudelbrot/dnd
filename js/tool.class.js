@@ -16,7 +16,7 @@ class Tool {
   }
 
   evtToCoordinates(evt){
-    return {x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y)/ this.map.cellHeight};
+    return {x: ((evt.offsetX - this.map.translation.x) / this.map.cellWidth)/this.map.scaleLevel, y: ((evt.offsetY - this.map.translation.y)/ this.map.cellHeight)/this.map.scaleLevel};
   }
 
 }
