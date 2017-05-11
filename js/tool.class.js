@@ -112,24 +112,21 @@ class PencilTool extends SculptureTool {
 
   }
   onMouseMove(evt){
-    if(this.mouseDown){
+    if(evt.which == 1 || evt.which == 3){
       var pos = this.evtToCoordinates(evt);
       pos.x = Math.floor(pos.x);
       pos.y = Math.floor(pos.y);
       if(this.latest.x != pos.x || this.latest.y != pos.y){
         this.latest.x = pos.x;
         this.latest.y = pos.y;
-        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+        if(evt.which == 1){
+          this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+        }else{
+          this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
+        }
         this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
       }
     }
-  }
-  onMouseDown(evt){
-    this.mouseDown = true;
-  }
-
-  onMouseUp(evt){
-    this.mouseDown = false;
   }
 }
 
@@ -219,6 +216,11 @@ class Toolbar {
         t.onClick(e);
           return false;
     }); 
+
+    this.map.on("click", function(evt){t.onClick(evt);});
+    this.map.on("mouseup", function(evt){t.onMouseUp(evt);});
+    this.map.on("mousedown", function(evt){t.onMouseDown(evt);});
+    this.map.on("mousemove", function(evt){t.onMouseMove(evt);});
   }
 
   addTools(){
