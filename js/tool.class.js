@@ -48,6 +48,8 @@ class SculptureTool extends Tool {
   constructor(map) {
     super(map);
     this.color = "black";
+    this.latestColors = [];
+    this.addColorpicker();
   }
   addColorpicker(){
     var body = this.panel.find(".panel-body");
@@ -75,6 +77,10 @@ class PickerTool extends SculptureTool {
     this.icon = "colorize"
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
   }
+  onClick(evt){
+    var pos = this.evtToCoordinates(evt);
+    this.colorpicker.colorpicker("setValue", this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle);
+  }
 }
 
 class PencilTool extends SculptureTool {
@@ -83,13 +89,32 @@ class PencilTool extends SculptureTool {
     this.size = 1;
     this.icon = "edit"
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-    this.addColorpicker();
+    this.mouseDown = false;
+    this.latest = {x: 0, y: 0};
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
     this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.color;
     this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
     //this.map.render();
+  }
+  onMouseMove(evt){
+    if(this.mouseDown){
+      var pos = this.evtToCoordinates(evt);
+      if(this.latest.x != pos.x && this.latest.y != pos.y){
+        this.latest.x = pos.x;
+        this.latest.y = pos.y;
+        this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle = this.color;
+        this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].render(this.map.canvas.getContext("2d"));
+      }
+    }
+  }
+  onMouseDown(evt){
+    this.mouseDown = true;
+  }
+
+  onMouseUp(evt){
+    this.mouseDown = false;
   }
 }
 
@@ -98,7 +123,6 @@ class BucketTool extends SculptureTool {
     super(map);
     this.icon = "format_color_fill";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-    this.addColorpicker();
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);

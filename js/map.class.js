@@ -5,8 +5,8 @@ class Cell {
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
     this.wall = {top: true, bottom: true, left: true, right: true};
-    this.fillStyle = "lightgray";
-    this.strokeStyle = "black";
+    this.fillStyle = "#d0d0d0";
+    this.strokeStyle = "#000000";
     this.lineWidth = 1;
   }
   render(ctx){

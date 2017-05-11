@@ -16,6 +16,9 @@ class Dnd{
       var toolbar = new Toolbar(target, this.map);
       this.toolbar = toolbar;
       this.map.on("click", function(evt){toolbar.onClick(evt);});
+      this.map.on("mouseup", function(evt){toolbar.onMouseUp(evt);});
+      this.map.on("mousedown", function(evt){toolbar.onMouseDown(evt);});
+      this.map.on("mousemove", function(evt){toolbar.onMouseMove(evt);});
   }
   gotScript(lib){
     if(lib == "map"){
