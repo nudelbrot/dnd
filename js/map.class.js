@@ -57,14 +57,11 @@ class RectMap {
     this.scaleLevel = 1.0;
 
     this.data = [];
-    //for(var i = 0; i < this.height; ++i){
-    //  var d = [];
-    //  for(var j = 0; j < this.width; ++j){
-    //    d.push(new Cell(i, j, this.cellWidth, this.cellHeight));
-    //  }
-    //  this.data.push(d);
-    //}
-    target.append(this.canvas);
+    this.panel = $("<div class='panel panel-default col-md-6'></div>");
+    var body = $("<div class='panel-body'></div>");
+    body.append(this.canvas);
+    this.panel.append(body);
+    target.append(this.panel[0]);
     this.drawGrid();
   }
 
@@ -130,9 +127,17 @@ class RectMap {
       }
     }
     ctx.stroke();
+    if(this.onRenderFunction){
+      this.onRenderFunction();
+    }
   }
+
   on(trigger, action){
-    $(this.canvas).on(trigger, action);
+    if(trigger == "render"){
+      this.onRenderFunction = action;
+    }else{
+      $(this.canvas).on(trigger, action);
+    }
   }
 
   translate(x, y){

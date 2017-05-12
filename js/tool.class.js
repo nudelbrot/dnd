@@ -33,10 +33,6 @@ class RectSelectionTool extends SelectionTool {
     super(map);
     this.icon = "crop_free";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-    var t = this;
-    this.button.on("click", function(){
-      t.map.translate(-24,0);
-    });
   }
 }
 
@@ -45,11 +41,6 @@ class MagicStickTool extends SelectionTool {
     super(map);
     this.icon = "open_with";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-    var t = this;
-    this.button.on("click", function(){
-      t.map.translate(24,0);
-    });
-
   }
   onMouseMove(evt){
     
@@ -75,18 +66,6 @@ class SculptureTool extends Tool {
     var body = this.panel.find(".panel-body");
   }
 
-}
-
-class PickerTool extends SculptureTool {
-  constructor(map) {
-    super(map);
-    this.icon = "colorize"
-    this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-  }
-  onClick(evt){
-    var pos = this.evtToCoordinates(evt);
-    //this.colorpicker.colorpicker("setValue", this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle);
-  }
 }
 
 class PencilTool extends SculptureTool {
@@ -251,17 +230,14 @@ class HeightTool extends SculptureTool {
 class Toolbar {
   constructor(target, map) {
     this.map = map;
-    this.panel = $("<div id='tb_panel' class='panel panel-default'></div>");
-    this.panel.css("float", "left");
-    this.panel.css("width", 300);
-    this.panel.css("height", 512);
+    this.panel = $("<div id='tb_panel' class='panel panel-default col-md-3'></div>");
     this.panel.append($("<div id='tb_body' class='panel-body'></div>"));
     this.foregroundColor = "#000000";
     this.backgroundColor = "#ffffff";
     this.addColorpickers();
     this.addTools();
     this.backgroundColorPicker.colorpicker("setValue", "#ffffff");
-    target.append(this.panel[0]);
+    target.prepend(this.panel[0]);
     var t = this;
     $(this.map.canvas).bind('contextmenu', function(e) {
         t.onClick(e);
@@ -278,13 +254,11 @@ class Toolbar {
     this.rectSelector = new RectSelectionTool(this.map);
     this.magicStick = new MagicStickTool(this.map);
     this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
-    this.picker = new PickerTool(this.map);
     this.bucket = new BucketTool(this.map);
     var grp = $('<div class="btn-group" role="group"></div>');
 
     grp.append(this.rectSelector.button);
     grp.append(this.magicStick.button);
-    grp.append(this.picker.button);
     grp.append(this.pencil.button);
     grp.append(this.bucket.button);
     var t = this;
@@ -297,9 +271,6 @@ class Toolbar {
     });
     this.pencil.button.on("click", function(){
       t.setActiveTool(t.pencil);
-    });
-    this.picker.button.on("click", function(){
-      t.setActiveTool(t.picker);
     });
     this.bucket.button.on("click", function(){
       t.setActiveTool(t.bucket);
