@@ -172,6 +172,11 @@ class BucketTool extends SculptureTool {
     this.old;
     this.inListOfCurrentCells = false;
     this.listOfCurrentCells;
+    this.outsidePixel = false;
+    this.xmin
+    this.xmax
+    this.ymin
+    this.ymax
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
@@ -179,12 +184,32 @@ class BucketTool extends SculptureTool {
     var coordString = pos[0] + "/" + pos[1]
     this.listOfCurrentCells = Object.keys(this.map.data)
     this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
+    var xAndYofCurrentCells = this.listOfCurrentCells.map(function (obj) {
+        var coord = obj.split("/")
+        console.debug(coord)
+        return [coord[0], coord[1]]
+    });
+    var xOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
+        return obj[0]
+    })
+    var yOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
+        return obj[1]
+    })
+    console.debug(xOfCurrentCells)
+    this.xmin = Math.min.apply(null, xOfCurrentCells)
+    this.xmax = Math.max.apply(null, xOfCurrentCells)
+    this.ymin = Math.min.apply(null, yOfCurrentCells)
+    this.ymax = Math.max.apply(null, yOfCurrentCells)
     //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
     var newColor;
     if (evt.type == "click") {
         newColor = this.foregroundColor;
     } else {
         newColor = this.backgroundColor;
+    }
+    if (this.outside(pos[0], pos[1])) {
+        console.debug("not implemented yet.")
+        return;
     }
     this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
     if (this.old == newColor) {
@@ -201,9 +226,17 @@ class BucketTool extends SculptureTool {
         cell.fillStyle = newColor;
     })
     var ctx = this.map.canvas.getContext("2d")
+    ctx.fillStyle = newColor;
     t.map.render();
   }
-
+  outside(x, y) {
+      //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
+      if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
+          return true;
+      } else {
+          return false;
+      }
+  }
   floodFill(x, y) {
       //console.debug("flood: " + x + ", " + y)
       this.fillPixel(x, y);
@@ -227,12 +260,16 @@ class BucketTool extends SculptureTool {
   }
 
   alreadyFilled(x, y) {
-      var coordString = x + "/" + y;
-      var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
-      if ($.inArray(coordString, this.listOfCurrentCells) != -1) {
-          return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
+      if (!this.outside(x, y)) {
+          var coordString = x + "/" + y;
+          var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
+          if ($.inArray(coordString, this.listOfCurrentCells) != -1) {
+              return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
+          } else {
+              return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
+          }
       } else {
-          return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
+          return true;
       }
   }
 }
