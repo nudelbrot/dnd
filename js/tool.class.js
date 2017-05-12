@@ -195,7 +195,6 @@ class BucketTool extends SculptureTool {
     var yOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
         return obj[1]
     })
-    console.debug(xOfCurrentCells)
     this.xmin = Math.min.apply(null, xOfCurrentCells)
     this.xmax = Math.max.apply(null, xOfCurrentCells)
     this.ymin = Math.min.apply(null, yOfCurrentCells)
