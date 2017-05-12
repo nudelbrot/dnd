@@ -5,7 +5,7 @@ class Cell {
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
     this.wall = {top: false, bottom: false, left: false, right: false};
-    this.fillStyle = "#d0d0d0";
+    this.fillStyle = "#ffffff";
     this.strokeStyle = "#000000";
     this.lineWidth = 1;
     this.highlight = false;

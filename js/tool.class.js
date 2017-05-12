@@ -16,7 +16,7 @@ class Tool {
   }
 
   evtToCoordinates(evt){
-    return {x: ((evt.offsetX - this.map.translation.x) / this.map.cellWidth)/this.map.scaleLevel, y: ((evt.offsetY - this.map.translation.y)/ this.map.cellHeight)/this.map.scaleLevel};
+    return {x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y)/ this.map.cellHeight};
   }
 
 }
@@ -138,13 +138,23 @@ class BucketTool extends SculptureTool {
     this.Stack = [];
     this.cellsToFill = [];
     this.old;
+    this.inListOfCurrentCells = false;
+    this.listOfCurrentCells;
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
     pos = [Math.floor(pos.x), Math.floor(pos.y)];
+    var coordString = pos[0] + "/" + pos[1]
+    this.listOfCurrentCells = Object.keys(this.map.data)
+    this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
+    console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
+
     this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
+    if (this.old == this.foregroundColor) {
+        return;
+    }
     console.debug(this.old)
-    this.cellsToFill = [pos];
+    this.cellsToFill = [];
     this.Stack = [];
     console.debug("Start flooding")
     this.floodFill(pos[0], pos[1]);
@@ -161,9 +171,11 @@ class BucketTool extends SculptureTool {
   floodFill(x, y) {
       console.debug("flood: " + x + ", " + y)
       this.fillPixel(x, y);
-      while (this.Stack.length > 0) {
+      var counter = 0;
+      while (this.Stack.length > 0 && counter < 100) {
           this.toFill = this.Stack.pop();
           this.fillPixel(this.toFill[0], this.toFill[1]);
+          counter++;
       }
   }
 
@@ -181,9 +193,15 @@ class BucketTool extends SculptureTool {
   }
 
   alreadyFilled(x, y) {
-      console.debug("already filled: " + x + "/" + y + " pixel color: " + this.map.getCell(x, y).fillStyle + " old color: " + this.old);
-      console.debug($.inArray([1, 1], [[1, 1]]));
-      return (this.map.getCell(x, y).fillStyle != this.old || $.inArray(x+"/"+y, this.cellsToFill.map(function(obj){return obj[0]+"/"+obj[1]})) != -1);
+      var coordString = x + "/" + y;
+      var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
+      if ($.inArray(coordString, this.listOfCurrentCells) != -1) { //wenn (x,y) schon eine Zelle ist
+          console.debug(coordString + " is in " + this.listOfCurrentCells + "\nRETURN " + ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1))
+          return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
+      } else {
+          console.debug(coordString + " is not in " + this.listOfCurrentCells + "\nRETURN " + ($.inArray(coordString, cellsToFillStringArray) != -1 && this.inListOfCurrentCells == -1))
+          return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
+      }
   }
 }
 
