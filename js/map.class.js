@@ -6,7 +6,7 @@ class Cell {
     this.cellHeight = cellHeight;
     this.wall = {top: false, bottom: false, left: false, right: false};
     this.fillStyle = "#ffffff";
-    this.strokeStyle = "#000000";
+    this.strokeStyle = "#ffffff";
     this.lineWidth = 1;
     this.highlight = false;
     this.highlightStyle = ""
@@ -16,7 +16,6 @@ class Cell {
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = this.fillStyle;
     ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth, this.cellHeight);
-
     ctx.strokeStyle = this.strokeStyle;
     if(this.wall.top){
       ctx.moveTo(this.x * this.cellWidth, this.y * this.cellHeight);
@@ -35,7 +34,7 @@ class Cell {
       ctx.lineTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight + this.cellHeight);
     }
     if(stroke){
-      ctx.stroke();
+        ctx.stroke();
     }
   }
 }

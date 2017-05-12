@@ -73,20 +73,11 @@ class MagicStickTool extends SelectionTool {
         this.ymin = Math.min.apply(null, yOfCurrentCells)
         this.ymax = Math.max.apply(null, yOfCurrentCells)
         //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
-        var newColor;
-        if (evt.type == "click") {
-            newColor = this.foregroundColor;
-        } else {
-            newColor = this.backgroundColor;
-        }
         if (this.outside(pos[0], pos[1])) {
             console.debug("not implemented yet.")
             return;
         }
         this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
-        if (this.old == newColor) {
-            return;
-        }
         this.cellsToFill = [];
         this.Stack = [];
         //console.debug("Start flooding")
@@ -95,11 +86,52 @@ class MagicStickTool extends SelectionTool {
         var t = this;
         this.cellsToFill.forEach(function (coord) {
             var cell = t.map.getCell(coord[0], coord[1])
-            cell.fillStyle = newColor;
+            cell.fillStyle = "#ababab";
+            cell.render(t.map.canvas.getContext("2d"))
         })
-        var ctx = this.map.canvas.getContext("2d")
-        ctx.fillStyle = newColor;
-        t.map.render();
+    }
+    outside(x, y) {
+        //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
+        if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    floodFill(x, y) {
+        //console.debug("flood: " + x + ", " + y)
+        this.fillPixel(x, y);
+        while (this.Stack.length > 0) {
+            this.toFill = this.Stack.pop();
+            this.fillPixel(this.toFill[0], this.toFill[1]);
+        }
+    }
+
+    fillPixel(x, y) {
+        if (!this.alreadyFilled(x, y)) this.fill(x, y);
+
+        if (!this.alreadyFilled(x, y - 1)) this.Stack.push([x, y - 1]);
+        if (!this.alreadyFilled(x + 1, y)) this.Stack.push([x + 1, y]);
+        if (!this.alreadyFilled(x, y + 1)) this.Stack.push([x, y + 1]);
+        if (!this.alreadyFilled(x - 1, y)) this.Stack.push([x - 1, y]);
+    }
+
+    fill(x, y) {
+        this.cellsToFill.push([x, y]);
+    }
+
+    alreadyFilled(x, y) {
+        if (!this.outside(x, y)) {
+            var coordString = x + "/" + y;
+            var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
+            if ($.inArray(coordString, this.listOfCurrentCells) != -1) {
+                return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
+            } else {
+                return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
+            }
+        } else {
+            return true;
+        }
     }
 }
 
@@ -270,10 +302,8 @@ class BucketTool extends SculptureTool {
         this.cellsToFill.forEach(function (coord) {
             var cell = t.map.getCell(coord[0], coord[1])
             cell.fillStyle = newColor;
+            cell.render(t.map.canvas.getContext("2d"))
         })
-        var ctx = this.map.canvas.getContext("2d")
-        ctx.fillStyle = newColor;
-        t.map.render();
     }
     outside(x, y) {
         //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
