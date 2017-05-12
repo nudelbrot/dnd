@@ -179,35 +179,37 @@ class BucketTool extends SculptureTool {
     var coordString = pos[0] + "/" + pos[1]
     this.listOfCurrentCells = Object.keys(this.map.data)
     this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
-    console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
-
+    //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
+    var newColor;
+    if (evt.type == "click") {
+        newColor = this.foregroundColor;
+    } else {
+        newColor = this.backgroundColor;
+    }
     this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
-    if (this.old == this.foregroundColor) {
+    if (this.old == newColor) {
         return;
     }
-    console.debug(this.old)
     this.cellsToFill = [];
     this.Stack = [];
-    console.debug("Start flooding")
+    //console.debug("Start flooding")
     this.floodFill(pos[0], pos[1]);
-    console.debug("Ended flooding: ", this.cellsToFill);
+    //console.debug("Ended flooding: ", this.cellsToFill);
     var t = this;
     this.cellsToFill.forEach(function (coord) {
         var cell = t.map.getCell(coord[0], coord[1])
-        cell.fillStyle = t.foregroundColor;
+        cell.fillStyle = newColor;
     })
     var ctx = this.map.canvas.getContext("2d")
     t.map.render();
   }
 
   floodFill(x, y) {
-      console.debug("flood: " + x + ", " + y)
+      //console.debug("flood: " + x + ", " + y)
       this.fillPixel(x, y);
-      var counter = 0;
-      while (this.Stack.length > 0 && counter < 100) {
+      while (this.Stack.length > 0) {
           this.toFill = this.Stack.pop();
           this.fillPixel(this.toFill[0], this.toFill[1]);
-          counter++;
       }
   }
 
@@ -227,11 +229,9 @@ class BucketTool extends SculptureTool {
   alreadyFilled(x, y) {
       var coordString = x + "/" + y;
       var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
-      if ($.inArray(coordString, this.listOfCurrentCells) != -1) { //wenn (x,y) schon eine Zelle ist
-          console.debug(coordString + " is in " + this.listOfCurrentCells + "\nRETURN " + ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1))
+      if ($.inArray(coordString, this.listOfCurrentCells) != -1) {
           return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
       } else {
-          console.debug(coordString + " is not in " + this.listOfCurrentCells + "\nRETURN " + ($.inArray(coordString, cellsToFillStringArray) != -1 && this.inListOfCurrentCells == -1))
           return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
       }
   }
