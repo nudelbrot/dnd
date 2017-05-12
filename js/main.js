@@ -13,8 +13,8 @@ class Dnd{
   }
   finishedLoading(){
       this.map = new RectMap(target, 32, 32, 24, 24);
-      this.navigation = new Navigation(target, this.map);
       var toolbar = new Toolbar(target, this.map);
+      this.navigation = new Navigation(target, this.map);
       
   }
   gotScript(lib){
