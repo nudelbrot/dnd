@@ -16,7 +16,7 @@ class Tool {
   }
 
   evtToCoordinates(evt){
-    return {x: ((evt.offsetX - this.map.translation.x) / this.map.cellWidth)/this.map.scaleLevel, y: ((evt.offsetY - this.map.translation.y)/ this.map.cellHeight)/this.map.scaleLevel};
+    return {x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y)/ this.map.cellHeight};
   }
 
 }
@@ -170,34 +170,78 @@ class BucketTool extends SculptureTool {
     this.Stack = [];
     this.cellsToFill = [];
     this.old;
+    this.inListOfCurrentCells = false;
+    this.listOfCurrentCells;
+    this.outsidePixel = false;
+    this.xmin
+    this.xmax
+    this.ymin
+    this.ymax
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
     pos = [Math.floor(pos.x), Math.floor(pos.y)];
+    var coordString = pos[0] + "/" + pos[1]
+    this.listOfCurrentCells = Object.keys(this.map.data)
+    this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
+    var xAndYofCurrentCells = this.listOfCurrentCells.map(function (obj) {
+        var coord = obj.split("/")
+        console.debug(coord)
+        return [coord[0], coord[1]]
+    });
+    var xOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
+        return obj[0]
+    })
+    var yOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
+        return obj[1]
+    })
+    this.xmin = Math.min.apply(null, xOfCurrentCells)
+    this.xmax = Math.max.apply(null, xOfCurrentCells)
+    this.ymin = Math.min.apply(null, yOfCurrentCells)
+    this.ymax = Math.max.apply(null, yOfCurrentCells)
+    //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
+    var newColor;
+    if (evt.type == "click") {
+        newColor = this.foregroundColor;
+    } else {
+        newColor = this.backgroundColor;
+    }
+    if (this.outside(pos[0], pos[1])) {
+        console.debug("not implemented yet.")
+        return;
+    }
     this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
-    console.debug(this.old)
-    this.cellsToFill = [pos];
+    if (this.old == newColor) {
+        return;
+    }
+    this.cellsToFill = [];
     this.Stack = [];
-    console.debug("Start flooding")
+    //console.debug("Start flooding")
     this.floodFill(pos[0], pos[1]);
-    console.debug("Ended flooding: ", this.cellsToFill);
+    //console.debug("Ended flooding: ", this.cellsToFill);
     var t = this;
     this.cellsToFill.forEach(function (coord) {
         var cell = t.map.getCell(coord[0], coord[1])
-        cell.fillStyle = t.foregroundColor;
+        cell.fillStyle = newColor;
     })
     var ctx = this.map.canvas.getContext("2d")
+    ctx.fillStyle = newColor;
     t.map.render();
   }
-
+  outside(x, y) {
+      //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
+      if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
+          return true;
+      } else {
+          return false;
+      }
+  }
   floodFill(x, y) {
-      console.debug("flood: " + x + ", " + y)
+      //console.debug("flood: " + x + ", " + y)
       this.fillPixel(x, y);
-      var counter = 0;
-      while (this.Stack.length > 0 && counter < 100) {
+      while (this.Stack.length > 0) {
           this.toFill = this.Stack.pop();
           this.fillPixel(this.toFill[0], this.toFill[1]);
-          counter++;
       }
   }
 
@@ -215,9 +259,17 @@ class BucketTool extends SculptureTool {
   }
 
   alreadyFilled(x, y) {
-      console.debug("already filled: " + x + "/" + y + " pixel color: " + this.map.getCell(x, y).fillStyle + " old color: " + this.old);
-      console.debug($.inArray([1, 1], [[1, 1]]));
-      return (this.map.getCell(x, y).fillStyle != this.old || $.inArray(x+"/"+y, this.cellsToFill.map(function(obj){return obj[0]+"/"+obj[1]})) != -1);
+      if (!this.outside(x, y)) {
+          var coordString = x + "/" + y;
+          var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
+          if ($.inArray(coordString, this.listOfCurrentCells) != -1) {
+              return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
+          } else {
+              return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
+          }
+      } else {
+          return true;
+      }
   }
 }
 
