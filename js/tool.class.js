@@ -33,10 +33,6 @@ class RectSelectionTool extends SelectionTool {
     super(map);
     this.icon = "crop_free";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-    var t = this;
-    this.button.on("click", function(){
-      t.map.translate(-24,0);
-    });
   }
 }
 
@@ -45,11 +41,6 @@ class MagicStickTool extends SelectionTool {
     super(map);
     this.icon = "open_with";
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-    var t = this;
-    this.button.on("click", function(){
-      t.map.translate(24,0);
-    });
-
   }
   onMouseMove(evt){
     
@@ -77,54 +68,95 @@ class SculptureTool extends Tool {
 
 }
 
-class PickerTool extends SculptureTool {
-  constructor(map) {
-    super(map);
-    this.icon = "colorize"
-    this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
-  }
-  onClick(evt){
-    var pos = this.evtToCoordinates(evt);
-    //this.colorpicker.colorpicker("setValue", this.map.data[Math.floor(pos.x)][Math.floor(pos.y)].fillStyle);
-  }
-}
-
 class PencilTool extends SculptureTool {
-  constructor(map) {
+  constructor(map, foregroundColorPicker, backgroundColorPicker) {
     super(map);
     this.size = 1;
     this.icon = "edit"
     this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">'+this.icon+'</span></button>');
     this.mouseDown = false;
     this.latest = {x: 0, y: 0};
+    this.foregroundColorPicker = foregroundColorPicker;
+    this.backgroundColorPicker = backgroundColorPicker;
+    this.shifted = {x: undefined, y: undefined, direction: undefined, reset: function(){this.x = undefined; this.y = undefined; this.direction = undefined;}};
   }
   onClick(evt){
     var pos = this.evtToCoordinates(evt);
     pos.x = Math.floor(pos.x);
     pos.y = Math.floor(pos.y);
-    if(evt.type == "click"){
-        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+    if(evt.ctrlKey){
+      if(this.map.data[pos.x+"/"+pos.y]){
+        if(evt.type == "click"){
+          this.foregroundColorPicker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
+        }else{
+          this.backgroundColorPicker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
+        }
+      }
     }else{
+      if(evt.type == "click"){
+        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+      }else{
         this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
+      }
+      this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
     }
-        this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
+
     //this.map.render();
 
   }
   onMouseMove(evt){
+    if(!evt.shiftKey){
+      this.shifted.reset();
+    }
     if(evt.which == 1 || evt.which == 3){
       var pos = this.evtToCoordinates(evt);
       pos.x = Math.floor(pos.x);
       pos.y = Math.floor(pos.y);
-      if(this.latest.x != pos.x || this.latest.y != pos.y){
-        this.latest.x = pos.x;
-        this.latest.y = pos.y;
-        if(evt.which == 1){
-          this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+
+      if(evt.shiftKey){
+        if(this.shifted.direction == "vertical"){
+          if(evt.which == 1){
+            this.map.getCell(pos.x, this.shifted.y).fillStyle = this.foregroundColor;
+          }else{
+            this.map.getCell(pos.x, this.shifted.y).fillStyle = this.backgroundColor;
+          }
+          this.map.getCell(pos.x, this.shifted.y).render(this.map.canvas.getContext("2d"));
+        }else if(this.shifted.direction == "horizontal"){
+          if(evt.which == 1){
+            this.map.getCell(this.shifted.x, pos.y).fillStyle = this.foregroundColor;
+          }else{
+            this.map.getCell(this.shifted.x, pos.y).fillStyle = this.backgroundColor;
+          }
+          this.map.getCell(this.shifted.x, pos.y).render(this.map.canvas.getContext("2d"));
+          
         }else{
-          this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
+          if(this.shifted.x){
+            if(Math.abs(this.shifted.x - pos.x) >= 1){
+              this.shifted.direction = "vertical";
+            }else if(Math.abs(this.shifted.y - pos.y) >= 1){
+              this.shifted.direction = "horizontal";
+            }
+          }else{
+            this.shifted.x = pos.x;
+            this.shifted.y = pos.y;
+          }
         }
-        this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
+      }else{
+        if(this.shifted.direction){
+          this.shifted.reset();
+        }
+
+
+        if(this.latest.x != pos.x || this.latest.y != pos.y){
+          this.latest.x = pos.x;
+          this.latest.y = pos.y;
+          if(evt.which == 1){
+            this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+          }else{
+            this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
+          }
+          this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
+        }
       }
     }
   }
@@ -214,16 +246,14 @@ class HeightTool extends SculptureTool {
 class Toolbar {
   constructor(target, map) {
     this.map = map;
-    this.panel = $("<div id='tb_panel' class='panel panel-default'></div>");
-    this.panel.css("float", "left");
-    this.panel.css("width", 300);
-    this.panel.css("height", 512);
+    this.panel = $("<div id='tb_panel' class='panel panel-default col-md-3'></div>");
     this.panel.append($("<div id='tb_body' class='panel-body'></div>"));
     this.foregroundColor = "#000000";
     this.backgroundColor = "#ffffff";
     this.addColorpickers();
     this.addTools();
-    target.append(this.panel[0]);
+    this.backgroundColorPicker.colorpicker("setValue", "#ffffff");
+    target.prepend(this.panel[0]);
     var t = this;
     $(this.map.canvas).bind('contextmenu', function(e) {
         t.onClick(e);
@@ -239,14 +269,12 @@ class Toolbar {
   addTools(){
     this.rectSelector = new RectSelectionTool(this.map);
     this.magicStick = new MagicStickTool(this.map);
-    this.pencil = new PencilTool(this.map);
-    this.picker = new PickerTool(this.map);
+    this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
     this.bucket = new BucketTool(this.map);
     var grp = $('<div class="btn-group" role="group"></div>');
 
     grp.append(this.rectSelector.button);
     grp.append(this.magicStick.button);
-    grp.append(this.picker.button);
     grp.append(this.pencil.button);
     grp.append(this.bucket.button);
     var t = this;
@@ -259,9 +287,6 @@ class Toolbar {
     });
     this.pencil.button.on("click", function(){
       t.setActiveTool(t.pencil);
-    });
-    this.picker.button.on("click", function(){
-      t.setActiveTool(t.picker);
     });
     this.bucket.button.on("click", function(){
       t.setActiveTool(t.bucket);
