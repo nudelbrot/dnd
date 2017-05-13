@@ -1,41 +1,31 @@
 class Cell {
-  constructor(x, y, cellWidth, cellHeight){
+  constructor(map, x, y, cellWidth, cellHeight){
+    this.map = map;
     this.x = x;
     this.y = y;
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
-    this.wall = {top: false, bottom: false, left: false, right: false};
-    this.fillStyle = "#ffffff";
-    this.strokeStyle = "#000000";
+    this.fillStyle = this.map.fillStyle;
+    this.strokeStyle = "#ffffff";
     this.lineWidth = 1;
     this.highlight = false;
-    this.highlightStyle = ""
+    this.highlightStyle = "#ff0000"
   }
-  render(ctx, stroke=true){
+  render(stroke=true){
+    var ctx = this.map.canvas.getContext("2d");
     ctx.lineWidth = this.lineWidth;
     ctx.globalCompositeOperation = "source-over";
+    if(this.highlight){
+        ctx.fillStyle = this.highlightStyle;
+    } else {
+        ctx.fillStyle = this.map.fillStyle;
+    }
+    ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1);
     ctx.fillStyle = this.fillStyle;
-    ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth, this.cellHeight);
-
     ctx.strokeStyle = this.strokeStyle;
-    if(this.wall.top){
-      ctx.moveTo(this.x * this.cellWidth, this.y * this.cellHeight);
-      ctx.lineTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight);
-    }
-    if(this.wall.bottom){
-      ctx.moveTo(this.x * this.cellWidth, this.y * this.cellHeight + this.cellHeight);
-      ctx.lineTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight + this.cellHeight);
-    }
-    if(this.wall.left){
-      ctx.moveTo(this.x * this.cellWidth, this.y * this.cellHeight);
-      ctx.lineTo(this.x * this.cellWidth, this.y * this.cellHeight + this.cellHeight);
-    }
-    if(this.wall.right){
-      ctx.moveTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight);
-      ctx.lineTo(this.x * this.cellWidth + this.cellWidth, this.y * this.cellHeight + this.cellHeight);
-    }
+    ctx.fillRect(this.x * this.cellWidth + 1, this.y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
     if(stroke){
-      ctx.stroke();
+        ctx.stroke();
     }
   }
 }
@@ -55,6 +45,7 @@ class RectMap {
     this.cellHeight = cellHeight? cellHeight : 64;
     this.translation = {x: 0, y: 0};
     this.scaleLevel = 1.0;
+    this.fillStyle = "#ffffff";
 
     this.data = [];
     this.panel = $("<div class='panel panel-default col-md-6'></div>");
@@ -62,24 +53,6 @@ class RectMap {
     body.append(this.canvas);
     this.panel.append(body);
     target.append(this.panel[0]);
-    this.drawGrid();
-  }
-
-  drawGrid(){
-    var ctx = this.canvas.getContext("2d");
-    ctx.globalCompositeOperation = "copy";
-    ctx.moveTo(this.translation.x, this.translation.y);
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 1;
-    for(var i = 0; i < this.height + 1; ++i){
-      ctx.moveTo(-this.translation.x, -this.translation.y + i * this.cellHeight)
-      ctx.lineTo(-this.translation.x + this.width*this.cellWidth, -this.translation.y +  i* this.cellHeight);
-    }
-    for(var i = 0; i < this.width + 1; ++i){
-      ctx.moveTo(-this.translation.x + i * this.cellWidth, -this.translation.y)
-      ctx.lineTo(-this.translation.x + i * this.cellWidth, -this.translation.y + this.cellHeight * this.height);
-    }
-    ctx.stroke();
   }
 
   getCell(x, y){
@@ -87,9 +60,14 @@ class RectMap {
     if(this.data[key]){
       return this.data[key];
     }else{
-      this.data[key] = new Cell(x, y, this.cellWidth, this.cellHeight);
+      this.data[key] = new Cell(this, x, y, this.cellWidth, this.cellHeight);
       return this.data[key];
     }
+  }
+
+  isCell(x, y){
+    var key = x + "/" + y;
+    return key in this.data;
   }
 
   scale(mode){
@@ -113,8 +91,9 @@ class RectMap {
 
   render(){
     var ctx = this.canvas.getContext("2d");
-    ctx.globalCompositeOperation = "source-over";
-    ctx.beginPath();
+    ctx.globalCompositeOperation = "copy";
+    ctx.rect(0,0,0,0);
+    ctx.stroke();
     ctx.moveTo(0,0);
     for(var i = 0; i < this.height; ++i){
       for(var j = 0; j < this.width; ++j){
@@ -122,7 +101,7 @@ class RectMap {
         var y =  i - this.translation.y/this.cellHeight;
         var key = x + "/" + y;
         if(this.data[key]){
-          this.data[key].render(ctx, true);
+          this.data[key].render(false);
         }
       }
     }
@@ -144,7 +123,6 @@ class RectMap {
     this.translation.x = this.translation.x + x;
     this.translation.y = this.translation.y + y;
     this.canvas.getContext("2d").translate(x,y);
-    this.drawGrid();
     this.render();
   }
 
