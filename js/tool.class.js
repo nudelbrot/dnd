@@ -143,6 +143,16 @@ class SculptureTool extends Tool {
         var body = this.panel.find(".panel-body");
     }
 
+    changeCellFillstyle(x, y, fillStyle){
+      if (this.map.fillStyle == fillStyle){
+        this.map.removeCell(x, y);
+        return;
+      } else {
+        this.map.getCell(x, y).fillStyle = fillStyle;
+        return this.map.getCell(x, y);
+      }
+    }
+
     onClick(evt){
       if (evt.ctrlKey) {
         var pos = this.evtToCoordinates(evt);
@@ -176,14 +186,20 @@ class PencilTool extends SculptureTool {
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
     }
   onClick(evt) {
+    super.onClick(evt);
     var pos = this.evtToCoordinates(evt);
     pos.x = Math.floor(pos.x);
     pos.y = Math.floor(pos.y);
-    super.onClick(evt);
     if (evt.type == "click") {
-      this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
+      var cell = this.changeCellFillstyle(pos.x, pos.y, this.foregroundColor);
+      if(cell){
+        cell.render();
+      }
     } else {
-      this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
+      var cell = this.changeCellFillstyle(pos.x, pos.y, this.backgroundColor);
+      if(cell){
+        cell.render();
+      }
     }
     this.map.getCell(pos.x, pos.y).render();
   }
@@ -192,26 +208,18 @@ class PencilTool extends SculptureTool {
             this.shifted.reset();
         }
         if (evt.which == 1 || evt.which == 3) {
+            var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
             pos.y = Math.floor(pos.y);
 
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
-                    if (evt.which == 1) {
-                        this.map.getCell(pos.x, this.shifted.y).fillStyle = this.foregroundColor;
-                    } else {
-                        this.map.getCell(pos.x, this.shifted.y).fillStyle = this.backgroundColor;
-                    }
-                    this.map.getCell(pos.x, this.shifted.y).render();
+                  this.changeColor(pos.x, this.shifted.y, fillStyle);
+                  this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
-                    if (evt.which == 1) {
-                        this.map.getCell(this.shifted.x, pos.y).fillStyle = this.foregroundColor;
-                    } else {
-                        this.map.getCell(this.shifted.x, pos.y).fillStyle = this.backgroundColor;
-                    }
-                    this.map.getCell(this.shifted.x, pos.y).render();
-
+                  this.changeColor(this.shifted.x, pos.y, fillStyle);
+                  this.map.getCell(this.shifted.x, pos.y).render();
                 } else {
                     if (this.shifted.x) {
                         if (Math.abs(this.shifted.x - pos.x) >= 1) {
@@ -233,11 +241,7 @@ class PencilTool extends SculptureTool {
                 if (this.latest.x != pos.x || this.latest.y != pos.y) {
                     this.latest.x = pos.x;
                     this.latest.y = pos.y;
-                    if (evt.which == 1) {
-                        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
-                    } else {
-                        this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
-                    }
+                    this.changeCellFillstyle(pos.x, pos.y, fillStyle);
                     this.map.getCell(pos.x, pos.y).render();
                 }
             }

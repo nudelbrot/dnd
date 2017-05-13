@@ -55,7 +55,7 @@ class RectMap {
     target.append(this.panel[0]);
   }
 
-  getCell(x, y){
+  getCell(x, y) {
     var key = x + "/" + y;
     if(this.data[key]){
       return this.data[key];
@@ -65,9 +65,14 @@ class RectMap {
     }
   }
 
-  isCell(x, y){
+  isCell(x, y) {
     var key = x + "/" + y;
     return key in this.data;
+  }
+
+  removeCell(x, y) {
+    var key = x + "/" + y;
+    delete this.data[key];
   }
 
   scale(mode){
