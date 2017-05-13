@@ -44,7 +44,6 @@ class MiniMap{
 
 
   render(){
-    console.debug(this.viewport.width());
     this.viewport.offset({
       left: $(this.canvas).offset().left -((this.map.translation.x/this.map.cellWidth)),
       top:  $(this.canvas).offset().top -this.map.translation.y/this.map.cellHeight
@@ -117,7 +116,7 @@ class Navigation{
       this.map.scale("out");
     }else if(evt.which == 48){
       this.map.scale("reset");
-    }else if(evt.which == 27){
+    }else if(evt.which == 27 || evt.which == 32){
       this.map.translate(-this.map.translation.x, -this.map.translation.y);
     }else{
       console.debug(evt.which);
