@@ -91,8 +91,9 @@ class RectMap {
 
   render(){
     var ctx = this.canvas.getContext("2d");
-    ctx.globalCompositeOperation = "source-over";
-    ctx.beginPath();
+    ctx.globalCompositeOperation = "copy";
+    ctx.rect(0,0,0,0);
+    ctx.stroke();
     ctx.moveTo(0,0);
     for(var i = 0; i < this.height; ++i){
       for(var j = 0; j < this.width; ++j){
@@ -100,7 +101,7 @@ class RectMap {
         var y =  i - this.translation.y/this.cellHeight;
         var key = x + "/" + y;
         if(this.data[key]){
-          this.data[key].render(true);
+          this.data[key].render(false);
         }
       }
     }
