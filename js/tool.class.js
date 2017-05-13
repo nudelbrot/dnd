@@ -46,12 +46,15 @@ class MagicStickTool extends SelectionTool {
         this.old;
         this.inListOfCurrentCells = false;
         this.listOfCurrentCells;
+        this.listOfCurrentlyHighlighted = [];
         this.xmin
         this.xmax
         this.ymin
         this.ymax
     }
     onClick(evt) {
+        this.listOfCurrentlyHighlighted = this.listOfCurrentlyHighlighted.concat(this.cellsToFill)
+        console.debug("listOfCurrentlyHighlighted: ", this.listOfCurrentlyHighlighted)
         var pos = this.evtToCoordinates(evt);
         pos = [Math.floor(pos.x), Math.floor(pos.y)];
         var coordString = pos[0] + "/" + pos[1]
@@ -71,21 +74,34 @@ class MagicStickTool extends SelectionTool {
         this.xmax = Math.max.apply(null, xOfCurrentCells)
         this.ymin = Math.min.apply(null, yOfCurrentCells)
         this.ymax = Math.max.apply(null, yOfCurrentCells)
+        var highlight;
         //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
-        if (this.outside(pos[0], pos[1])) {
-            console.debug("not implemented yet.")
-            return;
+        if (this.map.isCell(pos[0], pos[1])){
+            var cell = this.map.getCell(pos[0], pos[1]);
+            highlight = !cell.highlight;
+            this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
+            this.Stack = [];
+            this.floodFill(pos[0], pos[1]);
+            console.debug("neu: ", this.cellsToFill)
+        } else {
+            highlight = false;
+            this.cellsToFill = this.listOfCurrentlyHighlighted;
         }
-        this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
-        this.cellsToFill = [];
-        this.Stack = [];
-        this.floodFill(pos[0], pos[1]);
-        var t = this;
-        this.cellsToFill.forEach(function (coord) {
-            var cell = t.map.getCell(coord[0], coord[1])
-            cell.highlight = !cell.highlight;
-            cell.render()
-        })
+        for (var i = 0; i < this.cellsToFill.length; i++) {
+            var cellToFill = this.map.getCell(this.cellsToFill[i][0], this.cellsToFill[i][1]);
+            cellToFill.highlight = highlight;
+            cellToFill.render();
+        }
+        if (highlight == false) {
+            var t = this;
+            this.cellsToFill.map(function (obj) {
+                var index = t.listOfCurrentlyHighlighted.indexOf(obj);
+                if (index > -1) {
+                    t.listOfCurrentlyHighlighted.splice(index, 1);
+                }
+            })
+            this.cellsToFill = []
+        }
     }
     outside(x, y) {
         if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
