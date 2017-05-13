@@ -5,6 +5,7 @@ class Tool {
         this.button = undefined;
         this.panel = $("<div class='panel panel-default toolSettings'></div>");
         this.panel.append($("<div class='panel-body'></div>"));
+        this.cursor = {id: "default", dx: 0, dy: 0};
     }
     onMouseMove(self, evt) {
     }
@@ -17,6 +18,24 @@ class Tool {
 
     evtToCoordinates(evt) {
         return { x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y) / this.map.cellHeight };
+    }
+
+    enableCursor(){
+        var canvas = $("<canvas></canvas>")[0];
+        canvas.width = 24;
+        canvas.height = 24;
+        var ctx = canvas.getContext("2d");
+        ctx.font = "26px Material Icons";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.moveTo(0,0);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(this.cursor.id, 12,12);
+        ctx.fillStyle = "#000000";
+        ctx.font = "24px Material Icons";
+        ctx.fillText(this.cursor.id, 12,12);
+        var dataURL = canvas.toDataURL('image/png')
+        $(this.map.canvas).css('cursor', 'url('+dataURL+') ' + this.cursor.dx + ' ' + this.cursor.dy + ', auto');
     }
 
 }
@@ -32,6 +51,7 @@ class RectSelectionTool extends SelectionTool {
     constructor(map) {
         super(map);
         this.icon = "crop_free";
+        this.cursor.id = this.icon;
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
     }
 }
@@ -40,6 +60,7 @@ class MagicStickTool extends SelectionTool {
     constructor(map) {
         super(map);
         this.icon = "open_with";
+        this.cursor = {id: "open_with", dx: 10, dy: 10};
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.Stack = [];
         this.cellsToFill = [];
@@ -180,6 +201,7 @@ class PencilTool extends SculptureTool {
         super(map, foregroundColorPicker, backgroundColorPicker);
         this.size = 1;
         this.icon = "edit"
+        this.cursor = {id: "edit", dx: 2, dy: 20};
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
         this.latest = { x: 0, y: 0 };
@@ -248,6 +270,7 @@ class BucketTool extends SculptureTool {
     constructor(map, foregroundColorPicker, backgroundColorPicker) {
         super(map, foregroundColorPicker, backgroundColorPicker);
         this.icon = "format_color_fill";
+        this.cursor.id = this.icon;
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.Stack = [];
         this.cellsToFill = [];
@@ -363,6 +386,7 @@ class Toolbar {
         this.backgroundColor = "#ffffff";
         this.addColorpickers();
         this.addTools();
+        this.customCursor = false;
         this.backgroundColorPicker.colorpicker("setValue", "#ffffff");
         target.prepend(this.panel[0]);
         var t = this;
@@ -382,6 +406,7 @@ class Toolbar {
         this.magicStick = new MagicStickTool(this.map);
         this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
         this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker); 
+
         var grp = $('<div class="btn-group" role="group"></div>');
 
         grp.append(this.rectSelector.button);
@@ -404,7 +429,7 @@ class Toolbar {
         });
 
         this.activeTool = this.pencil;
-        //this.setActiveTool(this.pencil);
+        this.setActiveTool(this.pencil);
         var body = this.panel.find("#tb_body");
         body.append(grp);
 
@@ -445,6 +470,11 @@ class Toolbar {
         this.panel.find(".btn").removeClass("btn-primary");
         tool.button.addClass("btn-primary");
         this.panel.find(".panel-body").append(this.activeTool.panel);
+        if(this.customCursor){
+          this.activeTool.enableCursor();
+        }else{
+          $("body").css('cursor', 'default');
+        }
     }
 
     onMouseMove(evt) {
