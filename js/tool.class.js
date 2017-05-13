@@ -148,9 +148,7 @@ class SculptureTool extends Tool {
           this.map.removeCell(x, y);
           return;
       } else {
-          var cell = this.map.getCell(x, y);
-          cell.fillStyle = fillStyle;
-          cell.render()
+          this.map.changeCellFillstyle(x, y, fillStyle)
           return;
       }
     }

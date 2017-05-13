@@ -77,6 +77,12 @@ class RectMap {
     delete this.data[key];
   }
 
+  changeCellFillstyle(x,y, fillStyle){
+      var cell = this.getCell(x, y);
+      cell.fillStyle = fillStyle;
+      cell.render()
+  }
+
   scale(mode){
     //this.canvas.getContext("2d").scale(1/this.scaleLevel, 1/this.scaleLevel);
     //if(mode == "in"){
