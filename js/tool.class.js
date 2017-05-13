@@ -265,7 +265,7 @@ class BucketTool extends SculptureTool {
         this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
         var xAndYofCurrentCells = this.listOfCurrentCells.map(function (obj) {
             var coord = obj.split("/")
-            console.debug(coord)
+            //console.debug(coord)
             return [coord[0], coord[1]]
         });
         var xOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
@@ -286,13 +286,14 @@ class BucketTool extends SculptureTool {
             newColor = this.backgroundColor;
         }
         if (this.outside(pos[0], pos[1])) {
-            console.debug("not implemented yet.")
+            this.map.fillStyle = newColor;
+            return;
+        }
+        if (this.map.isCell(pos[0], pos[1]) && newColor == this.map.getCell(pos[0], pos[1]).fillStyle) {
             return;
         }
         this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
-        if (this.old == newColor) {
-            return;
-        }
+        
         this.cellsToFill = [];
         this.Stack = [];
         //console.debug("Start flooding")
