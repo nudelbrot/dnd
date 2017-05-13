@@ -71,7 +71,9 @@ class RectMap {
   }
 
   removeCell(x, y) {
-    var key = x + "/" + y;
+      var key = x + "/" + y;
+      var ctx = this.canvas.getContext("2d");
+      ctx.clearRect(x * this.cellWidth, y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1)
     delete this.data[key];
   }
 

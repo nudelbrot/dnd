@@ -145,11 +145,13 @@ class SculptureTool extends Tool {
 
     changeCellFillstyle(x, y, fillStyle){
       if (this.map.fillStyle == fillStyle){
-        this.map.removeCell(x, y);
-        return;
+          this.map.removeCell(x, y);
+          return;
       } else {
-        this.map.getCell(x, y).fillStyle = fillStyle;
-        return this.map.getCell(x, y);
+          var cell = this.map.getCell(x, y);
+          cell.fillStyle = fillStyle;
+          cell.render()
+          return;
       }
     }
 
@@ -191,15 +193,9 @@ class PencilTool extends SculptureTool {
     pos.x = Math.floor(pos.x);
     pos.y = Math.floor(pos.y);
     if (evt.type == "click") {
-      var cell = this.changeCellFillstyle(pos.x, pos.y, this.foregroundColor);
-      if(cell){
-        cell.render();
-      }
+      this.changeCellFillstyle(pos.x, pos.y, this.foregroundColor);
     } else {
-      var cell = this.changeCellFillstyle(pos.x, pos.y, this.backgroundColor);
-      if(cell){
-        cell.render();
-      }
+      this.changeCellFillstyle(pos.x, pos.y, this.backgroundColor);
     }
     this.map.getCell(pos.x, pos.y).render();
   }
@@ -296,6 +292,7 @@ class BucketTool extends SculptureTool {
         }
         if (this.outside(pos[0], pos[1])) {
             this.map.fillStyle = newColor;
+            this.map.render();
             return;
         }
         if (this.map.isCell(pos[0], pos[1]) && newColor == this.map.getCell(pos[0], pos[1]).fillStyle) {
@@ -308,12 +305,9 @@ class BucketTool extends SculptureTool {
         //console.debug("Start flooding")
         this.floodFill(pos[0], pos[1]);
         //console.debug("Ended flooding: ", this.cellsToFill);
-        var t = this;
-        this.cellsToFill.forEach(function (coord) {
-            var cell = t.map.getCell(coord[0], coord[1])
-            cell.fillStyle = newColor;
-            cell.render()
-        })
+        for (var i = 0; i < this.cellsToFill.length; i++) {
+            this.changeCellFillstyle(this.cellsToFill[i][0], this.cellsToFill[i][1], newColor);
+        }
     }
     outside(x, y) {
         //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
