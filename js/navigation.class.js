@@ -23,6 +23,11 @@ class MiniMap{
     this.viewport.css("background", "rgba(20,20,20, 0.2)");
     this.viewport.css("float", "right");
     this.viewport.css("position", "absolute");
+    this.viewport.offset({
+      left: $(this.canvas).offset().left + this.canvas.width/2 + this.viewport.width()/2,
+      top:  $(this.canvas).offset().top + this.canvas.height/2 + this.viewport.height()/2
+    });
+    console.debug(this.viewport.width());
     this.div.append(this.viewport[0]);
     var t = this;
     this.drag = false;
@@ -44,16 +49,18 @@ class MiniMap{
 
 
   render(){
-    this.viewport.offset({
-      left: $(this.canvas).offset().left -((this.map.translation.x/this.map.cellWidth)),
-      top:  $(this.canvas).offset().top -this.map.translation.y/this.map.cellHeight
-    });
     var ctx = this.canvas.getContext("2d");
+    ctx.globalCompositeOperation = "copy";
+    ctx.rect(0,0,0,0);
+    ctx.stroke();
+    ctx.globalCompositeOperation = "source-over";
     var t = this;
     Object.keys(this.map.data).forEach(function(key){
-      var cell = t.map.data[key];
-      ctx.fillStyle = cell.fillStyle;
-      ctx.fillRect(cell.x+1, cell.y+1, 1, 1);
+      if(key in t.map.data){
+        var cell = t.map.data[key];
+        ctx.fillStyle = cell.fillStyle;
+        ctx.fillRect(t.canvas.width/2 - t.viewport.width()/2 + cell.x - 11, t.canvas.height/2  - t.viewport.height()/2 + cell.y + 4, 1, 1);
+      }
     });
     ctx.stroke();
   }
@@ -103,12 +110,16 @@ class Navigation{
 
   onKeyDown(evt){
     if(evt.which == 87 || evt.which == 38){
+      this.minimap.canvas.getContext("2d").translate(0, 1);
       this.map.translate(0, this.map.cellHeight);
     }else if(evt.which == 65 || evt.which == 37){
+      this.minimap.canvas.getContext("2d").translate(1, 0);
       this.map.translate(this.map.cellWidth, 0);
     }else if(evt.which == 83 || evt.which == 40){
+      this.minimap.canvas.getContext("2d").translate(0, -1);
       this.map.translate(0, -this.map.cellHeight);
     }else if(evt.which == 68 || evt.which == 39){
+      this.minimap.canvas.getContext("2d").translate(-1, 0);
       this.map.translate(-this.map.cellWidth, 0);
     }else if(evt.which == 187){
       this.map.scale("in");
@@ -117,6 +128,7 @@ class Navigation{
     }else if(evt.which == 48){
       this.map.scale("reset");
     }else if(evt.which == 27 || evt.which == 32){
+      this.minimap.canvas.getContext("2d").translate(-this.map.translation.x, -this.map.translation.y);
       this.map.translate(-this.map.translation.x, -this.map.translation.y);
     }else{
       console.debug(evt.which);
