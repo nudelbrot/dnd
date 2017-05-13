@@ -59,7 +59,6 @@ class MagicStickTool extends SelectionTool {
         this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
         var xAndYofCurrentCells = this.listOfCurrentCells.map(function (obj) {
             var coord = obj.split("/")
-            console.debug(coord)
             return [coord[0], coord[1]]
         });
         var xOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
@@ -80,9 +79,7 @@ class MagicStickTool extends SelectionTool {
         this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
         this.cellsToFill = [];
         this.Stack = [];
-        //console.debug("Start flooding")
         this.floodFill(pos[0], pos[1]);
-        //console.debug("Ended flooding: ", this.cellsToFill);
         var t = this;
         this.cellsToFill.forEach(function (coord) {
             var cell = t.map.getCell(coord[0], coord[1])
@@ -91,7 +88,6 @@ class MagicStickTool extends SelectionTool {
         })
     }
     outside(x, y) {
-        //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
         if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
             return true;
         } else {
@@ -99,7 +95,6 @@ class MagicStickTool extends SelectionTool {
         }
     }
     floodFill(x, y) {
-        //console.debug("flood: " + x + ", " + y)
         this.fillPixel(x, y);
         while (this.Stack.length > 0) {
             this.toFill = this.Stack.pop();
@@ -136,79 +131,89 @@ class MagicStickTool extends SelectionTool {
 }
 
 class SculptureTool extends Tool {
-    constructor(map) {
+    constructor(map, foregroundColorPicker, backgroundColorPicker) {
         super(map);
         this.foregroundColor = "#000000";
         this.backgroundColor = "#ffffff";
+        this.foregroundColorPicker = foregroundColorPicker;
+        this.backgroundColorPicker = backgroundColorPicker;
         this.latestColors = [];
     }
     addSize() {
         var body = this.panel.find(".panel-body");
     }
 
+    changeCellFillstyle(x, y, fillStyle){
+      if (this.map.fillStyle == fillStyle){
+          this.map.removeCell(x, y);
+          return;
+      } else {
+          this.map.changeCellFillstyle(x, y, fillStyle)
+          return;
+      }
+    }
+
+    onClick(evt){
+      if (evt.ctrlKey) {
+        var pos = this.evtToCoordinates(evt);
+        pos.x = Math.floor(pos.x);
+        pos.y = Math.floor(pos.y);
+        var picker = undefined;
+        if (evt.type == "click"){
+          picker = this.foregroundColorPicker;
+        } else {
+          picker = this.backgroundColorPicker;
+        }
+        if (this.map.isCell(pos.x, pos.y)){
+            picker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
+        } else {
+            picker.colorpicker("setValue", this.map.fillStyle);
+        }
+          return;
+      }
+    }
+
 }
 
 class PencilTool extends SculptureTool {
     constructor(map, foregroundColorPicker, backgroundColorPicker) {
-        super(map);
+        super(map, foregroundColorPicker, backgroundColorPicker);
         this.size = 1;
         this.icon = "edit"
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
         this.latest = { x: 0, y: 0 };
-        this.foregroundColorPicker = foregroundColorPicker;
-        this.backgroundColorPicker = backgroundColorPicker;
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
     }
-    onClick(evt) {
-        var pos = this.evtToCoordinates(evt);
-        pos.x = Math.floor(pos.x);
-        pos.y = Math.floor(pos.y);
-        if (evt.ctrlKey) {
-            if (this.map.data[pos.x + "/" + pos.y]) {
-                if (evt.type == "click") {
-                    this.foregroundColorPicker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
-                } else {
-                    this.backgroundColorPicker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
-                }
-            }
-        } else {
-            if (evt.type == "click") {
-                this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
-            } else {
-                this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
-            }
-            this.map.getCell(pos.x, pos.y).render();
-        }
-
-        //this.map.render();
-
+  onClick(evt) {
+    super.onClick(evt);
+    var pos = this.evtToCoordinates(evt);
+    pos.x = Math.floor(pos.x);
+    pos.y = Math.floor(pos.y);
+    if (evt.type == "click") {
+      this.changeCellFillstyle(pos.x, pos.y, this.foregroundColor);
+    } else {
+      this.changeCellFillstyle(pos.x, pos.y, this.backgroundColor);
     }
+    this.map.getCell(pos.x, pos.y).render();
+  }
     onMouseMove(evt) {
         if (!evt.shiftKey) {
             this.shifted.reset();
         }
         if (evt.which == 1 || evt.which == 3) {
+            var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
             pos.y = Math.floor(pos.y);
 
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
-                    if (evt.which == 1) {
-                        this.map.getCell(pos.x, this.shifted.y).fillStyle = this.foregroundColor;
-                    } else {
-                        this.map.getCell(pos.x, this.shifted.y).fillStyle = this.backgroundColor;
-                    }
-                    this.map.getCell(pos.x, this.shifted.y).render();
+                  this.changeColor(pos.x, this.shifted.y, fillStyle);
+                  this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
-                    if (evt.which == 1) {
-                        this.map.getCell(this.shifted.x, pos.y).fillStyle = this.foregroundColor;
-                    } else {
-                        this.map.getCell(this.shifted.x, pos.y).fillStyle = this.backgroundColor;
-                    }
-                    this.map.getCell(this.shifted.x, pos.y).render();
-
+                  this.changeColor(this.shifted.x, pos.y, fillStyle);
+                  this.map.getCell(this.shifted.x, pos.y).render();
                 } else {
                     if (this.shifted.x) {
                         if (Math.abs(this.shifted.x - pos.x) >= 1) {
@@ -230,11 +235,7 @@ class PencilTool extends SculptureTool {
                 if (this.latest.x != pos.x || this.latest.y != pos.y) {
                     this.latest.x = pos.x;
                     this.latest.y = pos.y;
-                    if (evt.which == 1) {
-                        this.map.getCell(pos.x, pos.y).fillStyle = this.foregroundColor;
-                    } else {
-                        this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
-                    }
+                    this.changeCellFillstyle(pos.x, pos.y, fillStyle);
                     this.map.getCell(pos.x, pos.y).render();
                 }
             }
@@ -243,8 +244,8 @@ class PencilTool extends SculptureTool {
 }
 
 class BucketTool extends SculptureTool {
-    constructor(map) {
-        super(map);
+    constructor(map, foregroundColorPicker, backgroundColorPicker) {
+        super(map, foregroundColorPicker, backgroundColorPicker);
         this.icon = "format_color_fill";
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.Stack = [];
@@ -258,8 +259,10 @@ class BucketTool extends SculptureTool {
         this.ymax
     }
     onClick(evt) {
+        super.onClick(evt);
         var pos = this.evtToCoordinates(evt);
         pos = [Math.floor(pos.x), Math.floor(pos.y)];
+
         var coordString = pos[0] + "/" + pos[1]
         this.listOfCurrentCells = Object.keys(this.map.data)
         this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
@@ -287,6 +290,7 @@ class BucketTool extends SculptureTool {
         }
         if (this.outside(pos[0], pos[1])) {
             this.map.fillStyle = newColor;
+            this.map.render();
             return;
         }
         if (this.map.isCell(pos[0], pos[1]) && newColor == this.map.getCell(pos[0], pos[1]).fillStyle) {
@@ -299,12 +303,9 @@ class BucketTool extends SculptureTool {
         //console.debug("Start flooding")
         this.floodFill(pos[0], pos[1]);
         //console.debug("Ended flooding: ", this.cellsToFill);
-        var t = this;
-        this.cellsToFill.forEach(function (coord) {
-            var cell = t.map.getCell(coord[0], coord[1])
-            cell.fillStyle = newColor;
-            cell.render()
-        })
+        for (var i = 0; i < this.cellsToFill.length; i++) {
+            this.changeCellFillstyle(this.cellsToFill[i][0], this.cellsToFill[i][1], newColor);
+        }
     }
     outside(x, y) {
         //console.debug("x: " + x + "\nxmin: " + this.xmin + "\nxmax: " + this.xmax + "\nymin: " + this.ymin + "\nymax: " + this.ymax)
@@ -351,11 +352,6 @@ class BucketTool extends SculptureTool {
     }
 }
 
-class HeightTool extends SculptureTool {
-    constructor(map) {
-        super(map);
-    }
-}
 
 class Toolbar {
     constructor(target, map) {
@@ -384,7 +380,7 @@ class Toolbar {
         this.rectSelector = new RectSelectionTool(this.map);
         this.magicStick = new MagicStickTool(this.map);
         this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
-        this.bucket = new BucketTool(this.map);
+        this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker); 
         var grp = $('<div class="btn-group" role="group"></div>');
 
         grp.append(this.rectSelector.button);

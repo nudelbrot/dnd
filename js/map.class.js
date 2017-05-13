@@ -47,7 +47,7 @@ class RectMap {
     this.scaleLevel = 1.0;
     this.fillStyle = "#ffffff";
 
-    this.data = [];
+    this.data = []
     this.panel = $("<div class='panel panel-default col-md-6'></div>");
     var body = $("<div class='panel-body'></div>");
     body.append(this.canvas);
@@ -55,7 +55,7 @@ class RectMap {
     target.append(this.panel[0]);
   }
 
-  getCell(x, y){
+  getCell(x, y) {
     var key = x + "/" + y;
     if(this.data[key]){
       return this.data[key];
@@ -65,9 +65,23 @@ class RectMap {
     }
   }
 
-  isCell(x, y){
+  isCell(x, y) {
     var key = x + "/" + y;
     return key in this.data;
+  }
+
+  removeCell(x, y) {
+      var key = x + "/" + y;
+      var ctx = this.canvas.getContext("2d");
+      ctx.clearRect(x * this.cellWidth, y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1)
+    this.data[key] = undefined;
+    delete this.data[key];
+  }
+
+  changeCellFillstyle(x,y, fillStyle){
+      var cell = this.getCell(x, y);
+      cell.fillStyle = fillStyle;
+      cell.render()
   }
 
   scale(mode){
@@ -92,15 +106,21 @@ class RectMap {
   render(){
     var ctx = this.canvas.getContext("2d");
     ctx.globalCompositeOperation = "copy";
-    ctx.rect(0,0,0,0);
+    ctx.fillRect(0,0,0,0);
+    ctx.stroke();
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = this.fillStyle;
+    ctx.fillRect(-this.translation.x, -this.translation.y, this.width * this.cellWidth, this.height * this.cellHeight);
     ctx.stroke();
     ctx.moveTo(0,0);
+    ctx.globalCompositeOperation = "source-over";
     for(var i = 0; i < this.height; ++i){
       for(var j = 0; j < this.width; ++j){
         var x = j - this.translation.x/this.cellWidth;
         var y =  i - this.translation.y/this.cellHeight;
         var key = x + "/" + y;
-        if(this.data[key]){
+        if(this.isCell(x,y)){
           this.data[key].render(false);
         }
       }
