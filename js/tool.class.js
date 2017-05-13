@@ -146,6 +146,7 @@ class SculptureTool extends Tool {
     changeCellFillstyle(x, y, fillStyle){
       if (this.map.fillStyle == fillStyle){
           this.map.removeCell(x, y);
+          this.map.render();
           return;
       } else {
           this.map.changeCellFillstyle(x, y, fillStyle)

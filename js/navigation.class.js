@@ -44,7 +44,6 @@ class MiniMap{
 
 
   render(){
-    console.debug(this.viewport.width());
     this.viewport.offset({
       left: $(this.canvas).offset().left -((this.map.translation.x/this.map.cellWidth)),
       top:  $(this.canvas).offset().top -this.map.translation.y/this.map.cellHeight
