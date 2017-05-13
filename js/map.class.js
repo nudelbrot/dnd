@@ -15,15 +15,15 @@ class Cell {
     var ctx = this.map.canvas.getContext("2d");
     ctx.lineWidth = this.lineWidth;
     ctx.globalCompositeOperation = "source-over";
-      
+    if(this.highlight){
+        ctx.fillStyle = this.highlightStyle;
+    } else {
+        ctx.fillStyle = this.map.fillStyle;
+    }
+    ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1);
     ctx.fillStyle = this.fillStyle;
     ctx.strokeStyle = this.strokeStyle;
     ctx.fillRect(this.x * this.cellWidth + 1, this.y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
-    if(stroke){
-        ctx.stroke();
-    }
-    ctx.strokeStyle = this.highlightStyle;
-    ctx.rect(this.x * this.cellWidth + 1, this.y * this.cellHeight + 1, this.cellWidth, this.cellHeight);
     if(stroke){
         ctx.stroke();
     }

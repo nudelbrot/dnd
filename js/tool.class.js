@@ -86,7 +86,7 @@ class MagicStickTool extends SelectionTool {
         var t = this;
         this.cellsToFill.forEach(function (coord) {
             var cell = t.map.getCell(coord[0], coord[1])
-            cell.fillStyle = "#ababab";
+            cell.highlight = !cell.highlight;
             cell.render()
         })
     }
