@@ -7,7 +7,7 @@ rm == right mouse button
 
 | trigger(/alt-trigger)  | action |
 |---|---|
-| esc | center viewport to (0/0) |
+| esc(/space) | center viewport to (0/0) |
 | w(/up-arrow) | set viewport to (-0/-1) |
 | a(/left-arrow) | set viewport to (-1/-0) |
 | s(/down-arrow) | set viewport to (+0/-1) |
