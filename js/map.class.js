@@ -93,6 +93,11 @@ class RectMap {
     }
   }
 
+  isCell(x, y){
+    var key = x + "/" + y;
+    return key in this.data;
+  }
+
   scale(mode){
     //this.canvas.getContext("2d").scale(1/this.scaleLevel, 1/this.scaleLevel);
     //if(mode == "in"){
