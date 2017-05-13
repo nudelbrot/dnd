@@ -1,5 +1,6 @@
 class Cell {
-  constructor(x, y, cellWidth, cellHeight){
+  constructor(map, x, y, cellWidth, cellHeight){
+    this.map = map;
     this.x = x;
     this.y = y;
     this.cellWidth = cellWidth;
@@ -11,7 +12,8 @@ class Cell {
     this.highlight = false;
     this.highlightStyle = ""
   }
-  render(ctx, stroke=true){
+  render(stroke=true){
+    var ctx = this.map.canvas.getContext("2d");
     ctx.lineWidth = this.lineWidth;
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = this.fillStyle;
@@ -86,7 +88,7 @@ class RectMap {
     if(this.data[key]){
       return this.data[key];
     }else{
-      this.data[key] = new Cell(x, y, this.cellWidth, this.cellHeight);
+      this.data[key] = new Cell(this, x, y, this.cellWidth, this.cellHeight);
       return this.data[key];
     }
   }
@@ -121,7 +123,7 @@ class RectMap {
         var y =  i - this.translation.y/this.cellHeight;
         var key = x + "/" + y;
         if(this.data[key]){
-          this.data[key].render(ctx, true);
+          this.data[key].render(true);
         }
       }
     }

@@ -87,7 +87,7 @@ class MagicStickTool extends SelectionTool {
         this.cellsToFill.forEach(function (coord) {
             var cell = t.map.getCell(coord[0], coord[1])
             cell.fillStyle = "#ababab";
-            cell.render(t.map.canvas.getContext("2d"))
+            cell.render()
         })
     }
     outside(x, y) {
@@ -178,7 +178,7 @@ class PencilTool extends SculptureTool {
             } else {
                 this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
             }
-            this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
+            this.map.getCell(pos.x, pos.y).render();
         }
 
         //this.map.render();
@@ -200,14 +200,14 @@ class PencilTool extends SculptureTool {
                     } else {
                         this.map.getCell(pos.x, this.shifted.y).fillStyle = this.backgroundColor;
                     }
-                    this.map.getCell(pos.x, this.shifted.y).render(this.map.canvas.getContext("2d"));
+                    this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
                     if (evt.which == 1) {
                         this.map.getCell(this.shifted.x, pos.y).fillStyle = this.foregroundColor;
                     } else {
                         this.map.getCell(this.shifted.x, pos.y).fillStyle = this.backgroundColor;
                     }
-                    this.map.getCell(this.shifted.x, pos.y).render(this.map.canvas.getContext("2d"));
+                    this.map.getCell(this.shifted.x, pos.y).render();
 
                 } else {
                     if (this.shifted.x) {
@@ -235,7 +235,7 @@ class PencilTool extends SculptureTool {
                     } else {
                         this.map.getCell(pos.x, pos.y).fillStyle = this.backgroundColor;
                     }
-                    this.map.getCell(pos.x, pos.y).render(this.map.canvas.getContext("2d"));
+                    this.map.getCell(pos.x, pos.y).render();
                 }
             }
         }
@@ -302,7 +302,7 @@ class BucketTool extends SculptureTool {
         this.cellsToFill.forEach(function (coord) {
             var cell = t.map.getCell(coord[0], coord[1])
             cell.fillStyle = newColor;
-            cell.render(t.map.canvas.getContext("2d"))
+            cell.render()
         })
     }
     outside(x, y) {
