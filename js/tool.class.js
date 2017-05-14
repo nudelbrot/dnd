@@ -196,6 +196,51 @@ class SculptureTool extends Tool {
 
 }
 
+class PathTool extends SculptureTool {
+    constructor(map, foregroundColorPicker, backgroundColorPicker) {
+        super(map, foregroundColorPicker, backgroundColorPicker);
+        this.icon = "linear_scale";
+        this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+        this.positions = [];
+    }
+  onMouseUp(evt){
+    super.onClick(evt);
+    console.debug(this.positions.length);
+    var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+      var pos = this.evtToCoordinates(evt);
+      pos.x = Math.floor(pos.x);
+      pos.y = Math.floor(pos.y);
+      console.debug(pos);
+      this.positions.push(pos);
+      if(this.positions.length == 2){
+        if(evt.shiftKey){
+          this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+          this.positions.splice(0,1);
+        }else{
+          this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+          this.positions = [];
+        }
+    }
+
+  }
+  line(x0, y0, x1, y1, fillStyle){
+    var dx =  Math.abs(x1-x0);
+    var sx = x0<x1 ? 1 : -1;
+    var dy = -Math.abs(y1-y0)
+    var sy = y0<y1 ? 1 : -1;
+    var err = dx+dy, e2;
+    var i = 0;
+
+    while(1 && i++ < 200){
+      this.changeCellFillstyle(x0, y0, fillStyle);
+      if (x0==x1 && y0==y1) break;
+      e2 = 2*err;
+      if (e2 > dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+      if (e2 < dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+    }
+  }
+}
+
 class PencilTool extends SculptureTool {
     constructor(map, foregroundColorPicker, backgroundColorPicker) {
         super(map, foregroundColorPicker, backgroundColorPicker);
@@ -404,16 +449,21 @@ class Toolbar {
         this.rectSelector = new RectSelectionTool(this.map);
         this.magicStick = new MagicStickTool(this.map);
         this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
-        this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker); 
+        this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
+        this.path = new PathTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
 
         var grp = $('<div class="btn-group" role="group"></div>');
 
         grp.append(this.rectSelector.button);
         grp.append(this.magicStick.button);
         grp.append(this.pencil.button);
+        grp.append(this.path.button);
         grp.append(this.bucket.button);
         var t = this;
 
+        this.path.button.on("click", function () {
+            t.setActiveTool(t.path);
+        });
         this.rectSelector.button.on("click", function () {
             t.setActiveTool(t.rectSelector);
         });
