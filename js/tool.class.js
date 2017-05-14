@@ -507,6 +507,7 @@ class Toolbar {
                 t.foregroundColor = e.value;
                 t.pencil.foregroundColor = e.value;
                 t.bucket.foregroundColor = e.value;
+                t.path.foregroundColor = e.value;
             }
         });
         this.backgroundColorPicker.colorpicker().on("changeColor", function (e) {
@@ -514,6 +515,7 @@ class Toolbar {
                 t.backgroundColor = e.value;
                 t.pencil.backgroundColor = e.value;
                 t.bucket.backgroundColor = e.value;
+                t.path.backgroundColor = e.value;
             }
         });
         body.append(this.foregroundColorPicker);
