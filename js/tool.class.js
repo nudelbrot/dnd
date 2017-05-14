@@ -203,25 +203,22 @@ class PathTool extends SculptureTool {
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.positions = [];
     }
-  onMouseUp(evt){
+  onMouseDown(evt){
     super.onClick(evt);
-    console.debug(this.positions.length);
     var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-      var pos = this.evtToCoordinates(evt);
-      pos.x = Math.floor(pos.x);
-      pos.y = Math.floor(pos.y);
-      console.debug(pos);
-      this.positions.push(pos);
-      if(this.positions.length == 2){
-        if(evt.shiftKey){
-          this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-          this.positions.splice(0,1);
-        }else{
-          this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-          this.positions = [];
-        }
+    var pos = this.evtToCoordinates(evt);
+    pos.x = Math.floor(pos.x);
+    pos.y = Math.floor(pos.y);
+    this.positions.push(pos);
+    if(this.positions.length == 2){
+      if(evt.shiftKey){
+        this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+        this.positions.splice(0,1);
+      }else{
+        this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+        this.positions = [];
+      }
     }
-
   }
   line(x0, y0, x1, y1, fillStyle){
     var dx =  Math.abs(x1-x0);
@@ -265,11 +262,21 @@ class PencilTool extends SculptureTool {
       if(cell) cell.render();
     }
   }
+    onMouseDown(evt){
+      if(evt.which == 1 || evt.which == 3){
+        this.mouseDown = true;
+      }
+    }
+
+    onMouseUp(evt){
+      this.mouseDown = false;
+    }
+
     onMouseMove(evt) {
         if (!evt.shiftKey) {
             this.shifted.reset();
         }
-        if (evt.which == 1 || evt.which == 3) {
+        if (this.mouseDown && (evt.which == 1 || evt.which == 3)) {
             var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
