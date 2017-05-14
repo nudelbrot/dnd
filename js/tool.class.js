@@ -5,6 +5,7 @@ class Tool {
         this.button = undefined;
         this.panel = $("<div class='panel panel-default toolSettings'></div>");
         this.panel.append($("<div class='panel-body'></div>"));
+        this.cursor = {id: "default", dx: 0, dy: 0};
     }
     onMouseMove(self, evt) {
     }
@@ -17,6 +18,24 @@ class Tool {
 
     evtToCoordinates(evt) {
         return { x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y) / this.map.cellHeight };
+    }
+
+    enableCursor(){
+        var canvas = $("<canvas></canvas>")[0];
+        canvas.width = 24;
+        canvas.height = 24;
+        var ctx = canvas.getContext("2d");
+        ctx.font = "26px Material Icons";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.moveTo(0,0);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(this.cursor.id, 12,12);
+        ctx.fillStyle = "#000000";
+        ctx.font = "24px Material Icons";
+        ctx.fillText(this.cursor.id, 12,12);
+        var dataURL = canvas.toDataURL('image/png')
+        $(this.map.canvas).css('cursor', 'url('+dataURL+') ' + this.cursor.dx + ' ' + this.cursor.dy + ', auto');
     }
 
 }
@@ -32,6 +51,7 @@ class RectSelectionTool extends SelectionTool {
     constructor(map) {
         super(map);
         this.icon = "crop_free";
+        this.cursor.id = this.icon;
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
     }
 }
@@ -40,6 +60,7 @@ class MagicStickTool extends SelectionTool {
     constructor(map) {
         super(map);
         this.icon = "open_with";
+        this.cursor = {id: "open_with", dx: 10, dy: 10};
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.Stack = [];
         this.cellsToFill = [];
@@ -191,11 +212,54 @@ class SculptureTool extends Tool {
 
 }
 
+class PathTool extends SculptureTool {
+    constructor(map, foregroundColorPicker, backgroundColorPicker) {
+        super(map, foregroundColorPicker, backgroundColorPicker);
+        this.icon = "linear_scale";
+        this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+        this.positions = [];
+    }
+  onMouseDown(evt){
+    super.onClick(evt);
+    var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+    var pos = this.evtToCoordinates(evt);
+    pos.x = Math.floor(pos.x);
+    pos.y = Math.floor(pos.y);
+    this.positions.push(pos);
+    if(this.positions.length == 2){
+      if(evt.shiftKey){
+        this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+        this.positions.splice(0,1);
+      }else{
+        this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+        this.positions = [];
+      }
+    }
+  }
+  line(x0, y0, x1, y1, fillStyle){
+    var dx =  Math.abs(x1-x0);
+    var sx = x0<x1 ? 1 : -1;
+    var dy = -Math.abs(y1-y0)
+    var sy = y0<y1 ? 1 : -1;
+    var err = dx+dy, e2;
+    var i = 0;
+
+    while(1 && i++ < 200){
+      this.changeCellFillstyle(x0, y0, fillStyle);
+      if (x0==x1 && y0==y1) break;
+      e2 = 2*err;
+      if (e2 > dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
+      if (e2 < dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+    }
+  }
+}
+
 class PencilTool extends SculptureTool {
     constructor(map, foregroundColorPicker, backgroundColorPicker) {
         super(map, foregroundColorPicker, backgroundColorPicker);
         this.size = 1;
         this.icon = "edit"
+        this.cursor = {id: "edit", dx: 2, dy: 20};
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
         this.latest = { x: 0, y: 0 };
@@ -214,11 +278,21 @@ class PencilTool extends SculptureTool {
       if(cell) cell.render();
     }
   }
+    onMouseDown(evt){
+      if(evt.which == 1 || evt.which == 3){
+        this.mouseDown = true;
+      }
+    }
+
+    onMouseUp(evt){
+      this.mouseDown = false;
+    }
+
     onMouseMove(evt) {
         if (!evt.shiftKey) {
             this.shifted.reset();
         }
-        if (evt.which == 1 || evt.which == 3) {
+        if (this.mouseDown && (evt.which == 1 || evt.which == 3)) {
             var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
@@ -226,16 +300,15 @@ class PencilTool extends SculptureTool {
 
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
-                  this.changeColor(pos.x, this.shifted.y, fillStyle);
-                  this.map.getCell(pos.x, this.shifted.y).render();
+                  this.changeCellFillstyle(pos.x, this.shifted.y, fillStyle);
                 } else if (this.shifted.direction == "horizontal") {
-                  this.changeColor(this.shifted.x, pos.y, fillStyle);
-                  this.map.getCell(this.shifted.x, pos.y).render();
+                  this.changeCellFillstyle(this.shifted.x, pos.y, fillStyle);
                 } else {
-                    if (this.shifted.x) {
+                    if (this.shifted.x || this.shifted.y) {
                         if (Math.abs(this.shifted.x - pos.x) >= 1) {
                             this.shifted.direction = "vertical";
-                        } else if (Math.abs(this.shifted.y - pos.y) >= 1) {
+                        }
+                        if (Math.abs(this.shifted.y - pos.y) >= 1) {
                             this.shifted.direction = "horizontal";
                         }
                     } else {
@@ -264,6 +337,7 @@ class BucketTool extends SculptureTool {
     constructor(map, foregroundColorPicker, backgroundColorPicker) {
         super(map, foregroundColorPicker, backgroundColorPicker);
         this.icon = "format_color_fill";
+        this.cursor.id = this.icon;
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.Stack = [];
         this.cellsToFill = [];
@@ -379,6 +453,7 @@ class Toolbar {
         this.backgroundColor = "#ffffff";
         this.addColorpickers();
         this.addTools();
+        this.customCursor = false;
         this.backgroundColorPicker.colorpicker("setValue", "#ffffff");
         target.prepend(this.panel[0]);
         var t = this;
@@ -397,15 +472,21 @@ class Toolbar {
         this.rectSelector = new RectSelectionTool(this.map);
         this.magicStick = new MagicStickTool(this.map);
         this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
-        this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker); 
+        this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
+        this.path = new PathTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
+
         var grp = $('<div class="btn-group" role="group"></div>');
 
         grp.append(this.rectSelector.button);
         grp.append(this.magicStick.button);
         grp.append(this.pencil.button);
+        grp.append(this.path.button);
         grp.append(this.bucket.button);
         var t = this;
 
+        this.path.button.on("click", function () {
+            t.setActiveTool(t.path);
+        });
         this.rectSelector.button.on("click", function () {
             t.setActiveTool(t.rectSelector);
         });
@@ -420,7 +501,7 @@ class Toolbar {
         });
 
         this.activeTool = this.pencil;
-        //this.setActiveTool(this.pencil);
+        this.setActiveTool(this.pencil);
         var body = this.panel.find("#tb_body");
         body.append(grp);
 
@@ -442,6 +523,7 @@ class Toolbar {
                 t.foregroundColor = e.value;
                 t.pencil.foregroundColor = e.value;
                 t.bucket.foregroundColor = e.value;
+                t.path.foregroundColor = e.value;
             }
         });
         this.backgroundColorPicker.colorpicker().on("changeColor", function (e) {
@@ -449,6 +531,7 @@ class Toolbar {
                 t.backgroundColor = e.value;
                 t.pencil.backgroundColor = e.value;
                 t.bucket.backgroundColor = e.value;
+                t.path.backgroundColor = e.value;
             }
         });
         body.append(this.foregroundColorPicker);
@@ -461,6 +544,11 @@ class Toolbar {
         this.panel.find(".btn").removeClass("btn-primary");
         tool.button.addClass("btn-primary");
         this.panel.find(".panel-body").append(this.activeTool.panel);
+        if(this.customCursor){
+          this.activeTool.enableCursor();
+        }else{
+          $("body").css('cursor', 'default');
+        }
     }
 
     onMouseMove(evt) {
