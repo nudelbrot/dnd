@@ -18,7 +18,7 @@ class Cell {
     if(this.highlight){
         ctx.fillStyle = this.highlightStyle;
     } else {
-        ctx.fillStyle = this.map.fillStyle;
+        ctx.fillStyle = this.map.gridColor;
     }
     ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1);
     ctx.fillStyle = this.fillStyle;
