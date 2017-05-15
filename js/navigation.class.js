@@ -1,18 +1,21 @@
 class MiniMap{
-  constructor(target, map, width=128, height=128){
+  constructor(target, map, navigation, width=128, height=128){
     this.target = target;
     this.map = map;
-    this.div = $("<div class='well'></div>");
+    this.navigation = navigation;
+    this.div = $("<div></div>");
     this.canvas = $("<canvas id='minimap'></canvas>")[0];
     this.canvas.width = width;
     this.canvas.height = height;
+    $(this.canvas).css("background", "#ddd");
+    this.div.css("position", "relative");
     this.div.append(this.canvas);
     this.target.append(this.div);
 
-    this.canvas.style.width='100%';
-    this.canvas.style.height='100%';
-    this.canvas.width  = this.canvas.offsetWidth;
-    this.canvas.height = this.canvas.offsetHeight;
+    //this.canvas.style.width='100%';
+    //this.canvas.style.height='100%';
+    //this.canvas.width  = this.canvas.offsetWidth;
+    //this.canvas.height = this.canvas.offsetHeight;
     var ctx = this.canvas.getContext("2d");
     ctx.canvas.width = this.map.width*this.map.cellWidth/2;
     ctx.canvas.height = this.map.height*this.map.cellWidth/2;
@@ -23,25 +26,26 @@ class MiniMap{
     this.viewport.css("background", "rgba(20,20,20, 0.2)");
     this.viewport.css("float", "right");
     this.viewport.css("position", "absolute");
-    this.viewport.offset({
-      left: $(this.canvas).offset().left + this.canvas.width/2 + this.viewport.width()/2,
-      top:  $(this.canvas).offset().top + this.canvas.height/2 + this.viewport.height()/2
-    });
+    this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
+    this.viewport.css("top", this.canvas.height/2 - this.viewport.height()/2);
+    //this.viewport.offset({
+    //  left: $(this.canvas).offset().left + Math.floor(this.canvas.width/2) + Math.floor(this.viewport.width()/2 - 2),
+    //  top:  $(this.canvas).offset().top + Math.floor(this.canvas.height/2) + Math.floor(this.viewport.height()/2 - 2)
+    //});
     console.debug(this.viewport.width());
     this.div.append(this.viewport[0]);
     var t = this;
     this.drag = false;
-    this.viewport.on("mousedown", function(evt){t.drag = true;});
-    this.viewport.on("mouseup", function(evt){t.drag = false;});
-    this.viewport.on("mousemove", 
+    $(this.canvas).on("mousedown", function(evt){t.drag = true;});
+    $(this.canvas).on("mouseup", function(evt){t.drag = false;});
+    this.viewport.on("click", 
       function(evt){ 
-        //if(t.drag){
-        //  t.viewport.offset({ left: Math.min(Math.max(t.div.offset().left, evt.pageX-50), t.div.offset().left + t.div.width()-60), 
-        //                      top: Math.min(Math.max(t.div.offset().top, evt.pageY-50), t.div.offset().top + t.div.height()-60) });
-        //}
-        //if(evt.pageY <= t.div.offset().top || evt.pageY > t.div.offset().top + t.div.height() || evt.pageX < t.div.offset().left || evt.pageX > t.div.offset().left + t.div.width()){
-        //  t.drag = false;
-        //}
+          t.navigation.translate(t.viewport.width()/2 - evt.offsetX, t.viewport.height()/2 - evt.offsetY);
+          console.debug(t.viewport.width(), evt.offsetX, t.viewport.height(), evt.offsetY);
+      });
+    $(this.canvas).on("click", 
+      function(evt){ 
+          t.navigation.translate(t.canvas.width/2 - evt.offsetX, t.canvas.height/2 - evt.offsetY);
       });
     this.map.on("render", function(){t.render();});
 
@@ -59,7 +63,7 @@ class MiniMap{
       if(key in t.map.data){
         var cell = t.map.data[key];
         ctx.fillStyle = cell.fillStyle;
-        ctx.fillRect(t.canvas.width/2 - t.viewport.width()/2 + cell.x - 11, t.canvas.height/2  - t.viewport.height()/2 + cell.y + 4, 1, 1);
+        ctx.fillRect(t.canvas.width/2 - t.viewport.width()/2 + cell.x, t.canvas.height/2  - t.viewport.height()/2 + cell.y, 1, 1);
       }
     });
     ctx.stroke();
@@ -75,7 +79,7 @@ class Navigation{
     var body = $("<div class='panel-body'></div>");
 
     this.panel.append(body);
-    this.minimap = new MiniMap(body, map);
+    this.minimap = new MiniMap(body, map, this);
     this.target.append(this.panel[0]);
     this.jumppoints = [];
     for(var i = 0; i < 10; ++i){
@@ -114,17 +118,13 @@ class Navigation{
 
   onKeyDown(evt){
     if(evt.which == 87 || evt.which == 38){
-      this.minimap.canvas.getContext("2d").translate(0, 1);
-      this.map.translate(0, this.map.cellHeight);
+      this.translate(0, 1);
     }else if(evt.which == 65 || evt.which == 37){
-      this.minimap.canvas.getContext("2d").translate(1, 0);
-      this.map.translate(this.map.cellWidth, 0);
+      this.translate(1, 0);
     }else if(evt.which == 83 || evt.which == 40){
-      this.minimap.canvas.getContext("2d").translate(0, -1);
-      this.map.translate(0, -this.map.cellHeight);
+      this.translate(0, -1);
     }else if(evt.which == 68 || evt.which == 39){
-      this.minimap.canvas.getContext("2d").translate(-1, 0);
-      this.map.translate(-this.map.cellWidth, 0);
+      this.translate(-1, 0);
     }else if(evt.which == 187){
       this.map.scale("in");
     }else if(evt.which == 189){
@@ -146,8 +146,13 @@ class Navigation{
     }else{
       console.debug(evt.which);
     }
-
   }
+
+  translate(x, y){
+    this.minimap.canvas.getContext("2d").translate(x, y);
+    this.map.translate(x * this.map.cellWidth, y * this.map.cellHeight);
+  }
+
   jump(i){
     if(i == 9){
       var trans = {x: this.map.translation.x, y: this.map.translation.y};
