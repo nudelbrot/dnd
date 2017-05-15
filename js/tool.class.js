@@ -310,13 +310,13 @@ class PencilTool extends SculptureTool {
 
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
-                  this.changeColor(pos.x, this.shifted.y, fillStyle);
+                  this.changeCellFillstyle(pos.x, this.shifted.y, fillStyle);
                   this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
-                  this.changeColor(this.shifted.x, pos.y, fillStyle);
+                  this.changeCellFillstyle(this.shifted.x, pos.y, fillStyle);
                   this.map.getCell(this.shifted.x, pos.y).render();
                 } else {
-                    if (this.shifted.x) {
+                    if (this.shifted.x || this.shifted.y) {
                         if (Math.abs(this.shifted.x - pos.x) >= 1) {
                             this.shifted.direction = "vertical";
                         } else if (Math.abs(this.shifted.y - pos.y) >= 1) {
