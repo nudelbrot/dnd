@@ -84,6 +84,9 @@ class RectMap {
       var cell = this.getCell(x, y);
       cell.fillStyle = fillStyle;
       cell.render()
+      if(this.onRenderFunction){
+        this.onRenderFunction();
+      }
   }
 
   scale(mode){
