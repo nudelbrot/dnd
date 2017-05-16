@@ -5,17 +5,20 @@
 class Dnd{
   constructor(target){
     this.target = target;
-    this.loaded = {map: false, navigation: false, toolbar: false};
+    this.loaded = {map: false, navigation: false, toolbar: false, menu: false};
     var t = this;
+    $.getScript("js/menu.class.js", function(){t.gotScript("menu");});
     $.getScript("js/map.class.js", function(){t.gotScript("map");});
     $.getScript("js/navigation.class.js", function(){t.gotScript("navi");});
     $.getScript("js/tool.class.js", function(){t.gotScript("tools");});
   }
   finishedLoading() {
       this.prepArrayEqualsAndContains();
+      this.menubar = new MenuBar($("body"));
       this.map = new RectMap(target, 32, 32, 24, 24);
-      var toolbar = new Toolbar(target, this.map);
+      this.toolbar = new Toolbar(target, this.map);
       this.navigation = new Navigation(target, this.map);
+     
   }
   gotScript(lib){
     if(lib == "map"){
@@ -24,8 +27,10 @@ class Dnd{
       this.loaded.navigation = true;
     }else if(lib == "tools"){
       this.loaded.toolbar = true;
+    }else if(lib == "menu"){
+      this.loaded.menu = true;
     }
-    if(this.loaded.map && this.loaded.navigation && this.loaded.toolbar){
+    if(this.loaded.map && this.loaded.navigation && this.loaded.toolbar && this.loaded.menu){
       this.finishedLoading();
     }
   }
