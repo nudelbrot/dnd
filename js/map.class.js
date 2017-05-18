@@ -84,6 +84,9 @@ class RectMap {
       var cell = this.getCell(x, y);
       cell.fillStyle = fillStyle;
       cell.render()
+      if(this.onRenderFunction){
+        this.onRenderFunction();
+      }
   }
 
   scale(mode){
@@ -135,6 +138,36 @@ class RectMap {
     if(this.onRenderFunction){
       this.onRenderFunction();
     }
+  }
+
+  
+
+  toJson(){
+    var data = {fs: this.fillStyle, data: []}
+    for(var k in this.data){
+      if(this.data[k] && typeof(this.data[k]) != "function"){
+        var c = this.data[k];
+        data.data.push({x: c.x, y: c.y, fs: c.fillStyle});
+      }
+    }
+    var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(data));
+    var a = $("#saveJSON")[0];
+    a.setAttribute("href", url)
+    a.setAttribute("download", "map.json")
+
+  }
+
+  fromJson(json){
+    this.fillStyle = json.fs;
+    for(var c in json.data){
+      var cell = json.data[c];
+      this.getCell(cell.x, cell.y).fillStyle = cell.fs;
+    }
+    this.render();
+  }
+
+  toPNG(minX, minY, maxX, maxY){
+  
   }
 
   on(trigger, action){
