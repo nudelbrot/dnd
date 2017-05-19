@@ -19,6 +19,7 @@ class Dnd{
 
       var t = this;
       $("#saveJSON").on("click", function(a,b){t.map.toJson(a,b);});
+      $("#exportPNG").on("click", function(a,b){t.map.toPNG();});
       $("#loadJSON").on("click", function(a,b){
         var finput;
         if (window.File && window.FileReader && window.FileList && window.Blob) {
