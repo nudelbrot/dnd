@@ -149,7 +149,6 @@ class RectMap {
     if(this.onRenderFunction){
       this.onRenderFunction();
     }
-    console.debug("map rendered");
   }
 
   

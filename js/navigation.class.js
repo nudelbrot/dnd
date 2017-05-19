@@ -58,12 +58,10 @@ class MiniMap{
     ctx.globalCompositeOperation = "source-over";
     var t = this;
     var p = {x: t.canvas.width/2 - t.viewport.width()/2, y: t.canvas.height/2  - t.viewport.height()/2};
-    Object.keys(this.map.data).forEach(function(key){
-      if(key in t.map.data){
-        var cell = t.map.data[key];
+    var currentCells = [].concat.apply([],this.map.data).filter(function(obj){return obj;});
+    currentCells.forEach(function(cell){
         ctx.fillStyle = cell.fillStyle;
         ctx.fillRect(p.x + cell.x, p.y + cell.y, 1, 1);
-      }
     });
     ctx.stroke();
   }
@@ -76,7 +74,7 @@ class Navigation{
     
     this.panel = $("<div></div>");
     this.panel.css({"position": "absolute", "float":"right", "right": "5px", "top": "65px"});
-    //this.minimap = new MiniMap(this.panel, map, this);
+    this.minimap = new MiniMap(this.panel, map, this);
     this.target.append(this.panel[0]);
     this.jumppoints = [];
     for(var i = 0; i < 10; ++i){
@@ -146,7 +144,7 @@ class Navigation{
   }
 
   translate(x, y){
-    //this.minimap.canvas.getContext("2d").translate(x, y);
+    this.minimap.canvas.getContext("2d").translate(x, y);
     this.map.translate(x * this.map.cellWidth, y * this.map.cellHeight);
   }
 
