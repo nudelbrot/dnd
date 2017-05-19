@@ -33,16 +33,16 @@ class Cell {
 }
 
 class RectMap {
-  constructor(target, width, height, cellWidth, cellHeight) {
+  constructor(target, cellWidth, cellHeight) {
     this.canvas = $("<canvas></canvas>")[0];
-    this.canvas.width = width * cellWidth; 
-    this.canvas.height = height * cellHeight; 
+    this.width = 32;
+    this.height = 32;
+    this.canvas.width = this.width * cellWidth; 
+    this.canvas.height = this.height * cellHeight; 
 
     var ctx = this.canvas.getContext("2d");
-    ctx.canvas.width = width * cellWidth; 
-    ctx.canvas.height = height * cellHeight; 
-    this.width = width;
-    this.height = height;
+    ctx.canvas.width = this.width * cellWidth; 
+    ctx.canvas.height = this.height * cellHeight; 
     this.cellWidth = cellWidth? cellWidth : 64;
     this.cellHeight = cellHeight? cellHeight : 64;
     this.translation = {x: 0, y: 0};
