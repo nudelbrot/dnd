@@ -17,8 +17,8 @@ class MiniMap{
     //this.canvas.width  = this.canvas.offsetWidth;
     //this.canvas.height = this.canvas.offsetHeight;
     var ctx = this.canvas.getContext("2d");
-    ctx.canvas.width = this.map.width*this.map.cellWidth/2;
-    ctx.canvas.height = this.map.height*this.map.cellWidth/2;
+    ctx.canvas.width = 256;
+    ctx.canvas.height = 256;
 
     this.viewport = $("<div></div>");
     this.viewport.css("width", this.map.canvas.width / this.map.cellWidth);
@@ -32,7 +32,6 @@ class MiniMap{
     //  left: $(this.canvas).offset().left + Math.floor(this.canvas.width/2) + Math.floor(this.viewport.width()/2 - 2),
     //  top:  $(this.canvas).offset().top + Math.floor(this.canvas.height/2) + Math.floor(this.viewport.height()/2 - 2)
     //});
-    console.debug(this.viewport.width());
     this.div.append(this.viewport[0]);
     var t = this;
     this.drag = false;
@@ -41,7 +40,6 @@ class MiniMap{
     this.viewport.on("click", 
       function(evt){ 
           t.navigation.translate(t.viewport.width()/2 - evt.offsetX, t.viewport.height()/2 - evt.offsetY);
-          console.debug(t.viewport.width(), evt.offsetX, t.viewport.height(), evt.offsetY);
       });
     $(this.canvas).on("click", 
       function(evt){ 
@@ -59,11 +57,12 @@ class MiniMap{
     ctx.stroke();
     ctx.globalCompositeOperation = "source-over";
     var t = this;
+    var p = {x: t.canvas.width/2 - t.viewport.width()/2, y: t.canvas.height/2  - t.viewport.height()/2};
     Object.keys(this.map.data).forEach(function(key){
       if(key in t.map.data){
         var cell = t.map.data[key];
         ctx.fillStyle = cell.fillStyle;
-        ctx.fillRect(t.canvas.width/2 - t.viewport.width()/2 + cell.x, t.canvas.height/2  - t.viewport.height()/2 + cell.y, 1, 1);
+        ctx.fillRect(p.x + cell.x, p.y + cell.y, 1, 1);
       }
     });
     ctx.stroke();
@@ -75,11 +74,9 @@ class Navigation{
     this.target = target;
     this.map = map;
     
-    this.panel = $("<div class='panel panel-default col-md-3'></div>");
-    var body = $("<div class='panel-body'></div>");
-
-    this.panel.append(body);
-    this.minimap = new MiniMap(body, map, this);
+    this.panel = $("<div></div>");
+    this.panel.css({"position": "absolute", "float":"right", "right": "5px", "top": "65px"});
+    //this.minimap = new MiniMap(this.panel, map, this);
     this.target.append(this.panel[0]);
     this.jumppoints = [];
     for(var i = 0; i < 10; ++i){
@@ -149,7 +146,7 @@ class Navigation{
   }
 
   translate(x, y){
-    this.minimap.canvas.getContext("2d").translate(x, y);
+    //this.minimap.canvas.getContext("2d").translate(x, y);
     this.map.translate(x * this.map.cellWidth, y * this.map.cellHeight);
   }
 

@@ -33,53 +33,48 @@ class Cell {
 }
 
 class RectMap {
-  constructor(target, cellWidth, cellHeight) {
+  constructor(target, cellWidth=24, cellHeight=24) {
     this.canvas = $("<canvas></canvas>")[0];
-    this.width = 32;
-    this.height = 32;
-    this.canvas.width = this.width * cellWidth; 
-    this.canvas.height = this.height * cellHeight; 
+    var t = this;
+    this.width = function(){return Math.floor($(target).width()/cellWidth);}
+    this.height = function(){return Math.floor(($(window).height()-$(target).offset().top - 10)/cellHeight);}
 
     var ctx = this.canvas.getContext("2d");
-    ctx.canvas.width = this.width * cellWidth; 
-    ctx.canvas.height = this.height * cellHeight; 
-    this.cellWidth = cellWidth? cellWidth : 64;
-    this.cellHeight = cellHeight? cellHeight : 64;
+    this.cellWidth = cellWidth;
+    this.cellHeight = cellHeight;
     this.translation = {x: 0, y: 0};
     this.scaleLevel = 1.0;
     this.gridColor = "#aaaaaa";
     this.fillStyle = "#eeeeee";
 
-    this.data = []
-    this.panel = $("<div class='panel panel-default col-md-6'></div>");
-    var body = $("<div class='panel-body'></div>");
-    body.append(this.canvas);
-    this.panel.append(body);
+    this.data = [];
+    this.panel = $("<div></div>");
+    this.panel.append(this.canvas);
     target.append(this.panel[0]);
     this.render();
   }
 
   getCell(x, y) {
-    var key = x + "/" + y;
-    if(this.data[key]){
-      return this.data[key];
+    if(this.data[x]){
+      if(!this.data[x][y]){
+        this.data[x][y] = new Cell(this, x, y, this.cellWidth, this.cellHeight);
+      }
     }else{
-      this.data[key] = new Cell(this, x, y, this.cellWidth, this.cellHeight);
-      return this.data[key];
+      this.data[x] = [];
+      this.data[x][y] = new Cell(this, x, y, this.cellWidth, this.cellHeight);
     }
+    return this.data[x][y];
   }
 
   isCell(x, y) {
-    var key = x + "/" + y;
-    return key in this.data;
+    return (this.data[x] && this.data[x][y]);
   }
 
   removeCell(x, y) {
-      var key = x + "/" + y;
       var ctx = this.canvas.getContext("2d");
       ctx.clearRect(x * this.cellWidth, y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1)
-    this.data[key] = undefined;
-    delete this.data[key];
+    this.data[x][y] = undefined;
+    delete this.data[x][y];
   }
 
   changeCellFillstyle(x,y, fillStyle, render){
@@ -116,27 +111,37 @@ class RectMap {
     if(!ctx){
       ctx = this.canvas.getContext("2d");
     }
+    if(Math.abs(this.width() * this.cellWidth - this.canvas.width) > this.cellWidth || Math.abs(this.height() * this.cellHeight -this.canvas.height) > this.cellHeight){
+      this.canvas.width = this.width() * this.cellWidth; 
+      this.canvas.height = this.height() * this.cellHeight; 
+      ctx.canvas.width = this.width() * this.cellWidth; 
+      ctx.canvas.height = this.height() * this.cellHeight; 
+      this.canvas.getContext("2d").translate(this.translation.x,this.translation.y);
+      console.debug(this.width(),this.canvas.width, "resized");
+    }
+
     ctx.globalCompositeOperation = "copy";
     ctx.fillRect(0,0,0,0);
     ctx.stroke();
 
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = this.gridColor;
-    ctx.fillRect(-this.translation.x, -this.translation.y, this.width * this.cellWidth, this.height * this.cellHeight);
+    ctx.fillRect(-this.translation.x, -this.translation.y, this.width() * this.cellWidth, this.height() * this.cellHeight);
     ctx.stroke();
     ctx.moveTo(0,0);
+    var d = {x: this.translation.x/this.cellWidth, y: this.translation.y/this.cellHeight}
     ctx.globalCompositeOperation = "source-over";
-    for(var i = 0; i < this.height; ++i){
-      for(var j = 0; j < this.width; ++j){
-        var x = j - this.translation.x/this.cellWidth;
-        var y =  i - this.translation.y/this.cellHeight;
-        var key = x + "/" + y;
+    var height = this.height();
+    var width = this.width();
+    for(var i = 0; i < height; ++i){
+      for(var j = 0; j < width; ++j){
+        var x = j - d.x;
+        var y =  i - d.y;
         if(this.isCell(x,y)){
-          this.data[key].render(ctx, false);
+          this.data[x][y].render(ctx, false);
         }else{
           ctx.fillStyle = this.fillStyle;
           ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
-          //ctx.stroke();
         }
       }
     }
@@ -144,16 +149,19 @@ class RectMap {
     if(this.onRenderFunction){
       this.onRenderFunction();
     }
+    console.debug("map rendered");
   }
 
   
 
   toJson(){
     var data = {fs: this.fillStyle, data: []}
-    for(var k in this.data){
-      if(this.data[k] && typeof(this.data[k]) != "function"){
-        var c = this.data[k];
-        data.data.push({x: c.x, y: c.y, fs: c.fillStyle});
+    for(var x in this.data){
+      for(var y in this.data[x]){
+        if(this.data[k] && typeof(this.data[k]) != "function"){
+          var c = this.data[k];
+          data.data.push({x: c.x, y: c.y, fs: c.fillStyle});
+        }
       }
     }
     var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(data));
@@ -196,7 +204,6 @@ class RectMap {
         }
       }
     }
-    console.debug(minX, maxX, minY, maxY, viewport);
     ctx.stroke();
     var url = canvas[0].toDataURL("image/png");
     var a = $("#exportPNG")[0];
@@ -217,7 +224,7 @@ class RectMap {
   translate(x, y){
     this.translation.x = this.translation.x + x;
     this.translation.y = this.translation.y + y;
-    this.canvas.getContext("2d").translate(x,y);
+    this.canvas.getContext("2d").translate(x, y);
     this.render();
   }
 
