@@ -11,7 +11,7 @@ class Cell {
     this.highlight = false;
     this.highlightStyle = "#ff0000"
   }
-  render(ctx, stroke=true){
+  render(ctx, stroke=true, cellWidth=this.cellWidth, cellHeight=this.cellHeight){
     if(!ctx){
       ctx = this.map.canvas.getContext("2d");
     }
@@ -22,10 +22,10 @@ class Cell {
     } else {
         ctx.fillStyle = this.map.gridColor;
     }
-    ctx.fillRect(this.x * this.cellWidth, this.y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1);
+    ctx.fillRect(this.x * cellWidth, this.y * cellHeight, cellWidth + 1, cellHeight + 1);
     ctx.fillStyle = this.fillStyle;
     ctx.strokeStyle = this.strokeStyle;
-    ctx.fillRect(this.x * this.cellWidth + 1, this.y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
+    ctx.fillRect(this.x * cellWidth + 1, this.y * cellHeight + 1, cellWidth - 1, cellHeight - 1);
     if(stroke){
         ctx.stroke();
     }
@@ -190,12 +190,13 @@ class RectMap {
         viewport.maxY = Math.max(viewport.maxY, cell.y);
       }
     );
-    ctx.canvas.width = (viewport.maxX - viewport.minX + 1)*this.cellWidth;
-    ctx.canvas.height = (viewport.maxY - viewport.minY + 1)*this.cellHeight;
-    ctx.translate(-viewport.minX * this.cellWidth, -viewport.minY * this.cellHeight);
+    var ppi = 72;
+    ctx.canvas.width = (viewport.maxX - viewport.minX + 1)*ppi;
+    ctx.canvas.height = (viewport.maxY - viewport.minY + 1)*ppi;
+    ctx.translate(-viewport.minX * ppi, -viewport.minY * ppi);
     currentCells.forEach(function(cell){
         if(cell.x <= maxX && cell.x >= minX && cell.y <= maxY && cell.y >= minY){
-          cell.render(ctx, false);
+          cell.render(ctx, false, ppi, ppi);
         }
       });
     ctx.stroke();
