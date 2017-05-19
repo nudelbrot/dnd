@@ -36,8 +36,9 @@ class RectMap {
   constructor(target, cellWidth=24, cellHeight=24) {
     this.canvas = $("<canvas></canvas>")[0];
     var t = this;
-    this.width = function(){return Math.floor($(target).width()/cellWidth);}
-    this.height = function(){return Math.floor(($(window).height()-$(target).offset().top - 10)/cellHeight);}
+    $("html").css("overflow", "hidden");
+    this.width = function(){return Math.ceil($(target).width()/cellWidth);}
+    this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/cellHeight);}
 
     var ctx = this.canvas.getContext("2d");
     this.cellWidth = cellWidth;
@@ -154,16 +155,13 @@ class RectMap {
   
 
   toJson(){
-    var data = {fs: this.fillStyle, data: []}
-    for(var x in this.data){
-      for(var y in this.data[x]){
-        if(this.data[k] && typeof(this.data[k]) != "function"){
-          var c = this.data[k];
-          data.data.push({x: c.x, y: c.y, fs: c.fillStyle});
-        }
-      }
-    }
-    var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(data));
+    var toExport = {fs: this.fillStyle, data: []}
+    var currentCells = [].concat.apply([],this.data).filter(function(obj){return obj;});
+    currentCells.forEach(function(cell){
+          toExport.data.push({x: cell.x, y: cell.y, fs: cell.fillStyle});
+    });
+    
+    var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(toExport));
     var anchor = $("#saveJSON")[0];
     anchor.setAttribute("href", url)
     anchor.setAttribute("download", "map.json")
