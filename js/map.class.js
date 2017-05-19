@@ -164,9 +164,9 @@ class RectMap {
       }
     }
     var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(data));
-    var a = $("#saveJSON")[0];
-    a.setAttribute("href", url)
-    a.setAttribute("download", "map.json")
+    var anchor = $("#saveJSON")[0];
+    anchor.setAttribute("href", url)
+    anchor.setAttribute("download", "map.json")
 
   }
 
@@ -183,32 +183,29 @@ class RectMap {
     var canvas = $("<canvas></canvas>");
     var ctx = canvas[0].getContext("2d");
     var viewport = {minX: Number.MAX_VALUE, minY: Number.MAX_VALUE, maxX: -Number.MAX_VALUE, maxY: -Number.MAX_VALUE }
-    for(var k in this.data){
-      if(this.data[k] && typeof(this.data[k]) != "function"){
-        var cell = this.data[k];
+
+    var currentCells = [].concat.apply([],this.data).filter(function(obj){return obj;});
+    currentCells.forEach(function(cell){
         viewport.minX = Math.min(viewport.minX, cell.x);
         viewport.maxX = Math.max(viewport.maxX, cell.x);
         viewport.minY = Math.min(viewport.minY, cell.y);
         viewport.maxY = Math.max(viewport.maxY, cell.y);
       }
-    }
+    );
     ctx.canvas.width = (viewport.maxX - viewport.minX + 1)*this.cellWidth;
     ctx.canvas.height = (viewport.maxY - viewport.minY + 1)*this.cellHeight;
     ctx.translate(-viewport.minX * this.cellWidth, -viewport.minY * this.cellHeight);
-    for(var k in this.data){
-      if(this.data[k] && typeof(this.data[k]) != "function"){
-        var cell = this.data[k];
+    currentCells.forEach(function(cell){
         if(cell.x <= maxX && cell.x >= minX && cell.y <= maxY && cell.y >= minY){
           cell.render(ctx, false);
         }
-      }
-    }
+      });
     ctx.stroke();
     var url = canvas[0].toDataURL("image/png");
-    var a = $("#exportPNG")[0];
-    a.setAttribute("href", url)
+    var anchor = $("#exportPNG")[0];
+    anchor.setAttribute("href", url)
     //a.setAttribute("target", "_blank")
-    a.setAttribute("download", "map.png")
+    anchor.setAttribute("download", "map.png")
 
   }
 
