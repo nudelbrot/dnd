@@ -472,7 +472,7 @@ class Toolbar {
         this.backgroundColor = "#ffffff";
         this.addColorpickers();
         this.addTools();
-        this.customCursor = false;
+        this.customCursor = true;
         this.backgroundColorPicker.colorpicker("setValue", "#ffffff");
         target.prepend(this.panel[0]);
         var t = this;
