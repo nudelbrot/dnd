@@ -82,12 +82,14 @@ class RectMap {
     delete this.data[key];
   }
 
-  changeCellFillstyle(x,y, fillStyle){
+  changeCellFillstyle(x,y, fillStyle, render){
       var cell = this.getCell(x, y);
       cell.fillStyle = fillStyle;
-      cell.render()
-      if(this.onRenderFunction){
-        this.onRenderFunction();
+      if (render){
+          cell.render()
+          if(this.onRenderFunction){
+            this.onRenderFunction();
+          }
       }
   }
 

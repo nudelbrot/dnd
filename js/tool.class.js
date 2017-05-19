@@ -188,7 +188,7 @@ class SculptureTool extends Tool {
           }
           return false;
       } else {
-          return this.map.changeCellFillstyle(x, y, fillStyle)
+          return this.map.changeCellFillstyle(x, y, fillStyle, render)
       }
     }
 
@@ -406,11 +406,9 @@ class BucketTool extends SculptureTool {
             if (!this.abort){
                 var newColorIsBackgroundColor = (newColor == this.map.fillStyle)
                 for (var i = 0; i < this.cellsToFill.length; i++) {
-                    this.changeCellFillstyle(this.cellsToFill[i][0], this.cellsToFill[i][1], newColor, !newColorIsBackgroundColor);
+                    this.changeCellFillstyle(this.cellsToFill[i][0], this.cellsToFill[i][1], newColor, false);
                 }
-                if (newColorIsBackgroundColor) {
-                    this.map.render();
-                }
+                this.map.render();
             } else {
                 this.map.fillStyle = newColor;
                 this.map.render();
