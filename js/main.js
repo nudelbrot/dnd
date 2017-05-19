@@ -14,8 +14,41 @@ class Dnd{
   finishedLoading() {
       this.prepArrayEqualsAndContains();
       this.map = new RectMap(target, 32, 32, 24, 24);
-      var toolbar = new Toolbar(target, this.map);
+      this.toolbar = new Toolbar(target, this.map);
       this.navigation = new Navigation(target, this.map);
+
+      var t = this;
+      $("#saveJSON").on("click", function(a,b){t.map.toJson(a,b);});
+      $("#exportPNG").on("click", function(a,b){t.map.toPNG();});
+      $("#loadJSON").on("click", function(a,b){
+        var finput;
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+          finput = $('<input type="file" name="files" title="Load JSON" />');
+          finput.on("change", function(a, b) {
+            var f, reader;
+            f = a.target.files[0];
+            if (f.type.match('application/json') || true) {
+              reader = new FileReader();
+              reader.onload = function(file) {
+                var json, parsed;
+                json = file.target.result;
+                try {
+                  parsed = JSON.parse(json);
+                  t.map.fromJson(parsed);
+                } catch (error) {
+                  alert("parsing error: " +  error);
+                }
+              };
+              return reader.readAsText(f);
+            } else {
+              alert("a JSON file is required");
+            }
+          });
+          return finput.click();
+        } else {
+          alert('The File APIs are not fully supported in this browser.');
+        }
+      });
   }
   gotScript(lib){
     if(lib == "map"){
@@ -24,6 +57,8 @@ class Dnd{
       this.loaded.navigation = true;
     }else if(lib == "tools"){
       this.loaded.toolbar = true;
+    }else if(lib == "menu"){
+      this.loaded.menu = true;
     }
     if(this.loaded.map && this.loaded.navigation && this.loaded.toolbar){
       this.finishedLoading();

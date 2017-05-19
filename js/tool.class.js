@@ -220,6 +220,7 @@ class PathTool extends SculptureTool {
         this.icon = "linear_scale";
         this.button = $('<button type="button" class="btn btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.positions = [];
+        this.wasShifted = false;
     }
   onMouseDown(evt){
     super.onClick(evt);
@@ -227,12 +228,19 @@ class PathTool extends SculptureTool {
     var pos = this.evtToCoordinates(evt);
     pos.x = Math.floor(pos.x);
     pos.y = Math.floor(pos.y);
+
     this.positions.push(pos);
-    if(this.positions.length == 2){
-      if(evt.shiftKey){
+    if(evt.shiftKey){
+      if(this.positions.length == 2){
         this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
         this.positions.splice(0,1);
-      }else{
+        this.wasShifted = true;
+      }
+    }else{
+      if(this.wasShifted){
+        this.positions = [pos];
+        this.wasShifted = false;
+      }else if(this.positions.length == 2){
         this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
         this.positions = [];
       }
@@ -302,13 +310,13 @@ class PencilTool extends SculptureTool {
 
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
-                  this.changeColor(pos.x, this.shifted.y, fillStyle);
+                  this.changeCellFillstyle(pos.x, this.shifted.y, fillStyle);
                   this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
-                  this.changeColor(this.shifted.x, pos.y, fillStyle);
+                  this.changeCellFillstyle(this.shifted.x, pos.y, fillStyle);
                   this.map.getCell(this.shifted.x, pos.y).render();
                 } else {
-                    if (this.shifted.x) {
+                    if (this.shifted.x || this.shifted.y) {
                         if (Math.abs(this.shifted.x - pos.x) >= 1) {
                             this.shifted.direction = "vertical";
                         } else if (Math.abs(this.shifted.y - pos.y) >= 1) {
