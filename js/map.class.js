@@ -58,9 +58,14 @@ class Cell {
             this.render();
         }
 
-        newCommand(command){
+        newCommand(command, toolbar){
+            if (this.history.length > 0){
+                this.history = this.history.slice(0, this.historyIndex+1)
+                console.debug("slice from " + 0 + " to " + (this.historyIndex+1))
+            }
             this.history.push(command)
             this.historyIndex++;
+            toolbar.checkUndoAndRedoButton()
             console.debug(this.history, " index: " + this.historyIndex);
         }
 
@@ -125,6 +130,7 @@ class Cell {
                     this.onRenderFunction();
                 }
             }
+            return true;
         }
 
         scale(mode){
@@ -169,8 +175,8 @@ class Cell {
                         }
                     }
                     if(this.data[-1] && this.data[-1][x] && this.data[-1][x][y]){
-                        ctx.fillStyle = this.data[-1][x][y];
-                        ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
+                      ctx.fillStyle = this.data[-1][x][y];
+                      ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
                     }
                 }
             }
@@ -210,7 +216,7 @@ class Cell {
             var ctx = canvas[0].getContext("2d");
             var viewport = {minX: Number.MAX_VALUE, minY: Number.MAX_VALUE, maxX: -Number.MAX_VALUE, maxY: -Number.MAX_VALUE }
 
-            var currentCells = [].concat.apply([],this.data).filter(function(obj){return obj;});
+            var currentCells = this.getCurrentCells();
             currentCells.forEach(function(cell){
                 viewport.minX = Math.min(viewport.minX, cell.x);
                 viewport.maxX = Math.max(viewport.maxX, cell.x);

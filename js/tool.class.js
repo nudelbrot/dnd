@@ -187,9 +187,12 @@ class SculptureTool extends Tool {
             if (render){
                 this.map.render();
             }
-            return false;
+            return true;
+        } else if (this.fillStyle != this.map.getCell(x,y).fillStyle) {
+            this.map.changeCellFillstyle(x, y, fillStyle, render)
+            return true;
         } else {
-            return this.map.changeCellFillstyle(x, y, fillStyle, render)
+            return false;
         }
     }
 
@@ -209,8 +212,9 @@ class SculptureTool extends Tool {
                 } else {
                     picker.colorpicker("setValue", this.map.fillStyle);
                 }
-                return;
+                return true;
             }
+          return false;
         }
 
     }
@@ -226,40 +230,41 @@ class SculptureTool extends Tool {
         this.latest = {x:0, y:0};
     }
     onMouseDown(evt){
-        super.onClick(evt);
-        var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-        var pos = this.evtToCoordinates(evt);
-        pos.x = Math.floor(pos.x);
-        pos.y = Math.floor(pos.y);
-        pos.which = evt.which;
-        this.latest.which = evt.which;
+        if(!super.onClick(evt)){
+          var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+          var pos = this.evtToCoordinates(evt);
+          pos.x = Math.floor(pos.x);
+          pos.y = Math.floor(pos.y);
+          pos.which = evt.which;
+          this.latest.which = evt.which;
 
-        var t = this;
-        this.positions.push(pos);
-        if(evt.shiftKey){
+          var t = this;
+          this.positions.push(pos);
+          if(evt.shiftKey){
             if(this.positions.length == 2){
-                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-                line.forEach(function(pos){
-                    t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-                });
-                this.positions.splice(0,1);
-                this.wasShifted = true;
+              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+              line.forEach(function(pos){
+                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+              });
+              this.positions.splice(0,1);
+              this.wasShifted = true;
             }
-        }else{
+          }else{
             if(this.wasShifted){
-                this.positions = [pos];
-                this.wasShifted = false;
-            }else if(this.positions.length == 2){
-                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-                line.forEach(function(pos){
-                    t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-                });
-                this.positions = [];
+              this.wasShifted = false;
             }
-        }
-        this.previewPositions.forEach(function(p){
+            if(this.positions.length == 2){
+              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+              line.forEach(function(pos){
+                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+              });
+              this.positions = [];
+            }
+          }
+          this.previewPositions.forEach(function(p){
             t.map.removeCell(p.x, p.y, -1);
-        });
+          });
+        }
     }
 
     onMouseMove(evt){
@@ -318,23 +323,24 @@ class PencilTool extends SculptureTool {
         this.latest = { x: 0, y: 0 };
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
     }
-    onClick(evt) {
-        super.onClick(evt);
+
+    onMouseDown(evt){
         var pos = this.evtToCoordinates(evt);
         pos.x = Math.floor(pos.x);
         pos.y = Math.floor(pos.y);
+        var oldColor = this.map.getCell(pos.x, pos.y).fillStyle;
         var newColor;
-        if (evt.type == "click") {
+        if (evt.which == 1) {
             newColor = this.foregroundColor;
         }else {
             newColor = this.backgroundColor;
         }
-        this.map.newCommand(new PencilClickCommand(this.map, pos.x, pos.y, this.map.getCell(pos.x, pos.y).fillStyle, newColor));
-        this.toolbar.checkUndoAndRedoButton();
-        var cell = this.changeCellFillstyle(pos.x, pos.y, newColor);
-        if(cell) cell.render();
-    }
-    onMouseDown(evt){
+        if (this.changeCellFillstyle(pos.x, pos.y, newColor)){
+            if (this.map.isCell(pos.x, pos.y)){
+                this.map.newCommand(new PencilClickCommand(this, pos.x, pos.y, oldColor, newColor), this.toolbar);
+                this.map.getCell(pos.x, pos.y).render()
+            }
+        }
         if(evt.which == 1 || evt.which == 3){
             this.mouseDown = true;
         }
@@ -348,7 +354,7 @@ class PencilTool extends SculptureTool {
         if (!evt.shiftKey) {
             this.shifted.reset();
         }
-        if (evt.which == 1 || evt.which == 3) {
+        if ((evt.which == 1 || evt.which == 3) && this.mouseDown) {
             var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
@@ -382,8 +388,11 @@ class PencilTool extends SculptureTool {
                 if (this.latest.x != pos.x || this.latest.y != pos.y) {
                     this.latest.x = pos.x;
                     this.latest.y = pos.y;
-                    var cell = this.changeCellFillstyle(pos.x, pos.y, fillStyle);
-                    if(cell) cell.render();
+                    if (this.changeCellFillstyle(pos.x, pos.y, fillStyle)){
+                        if (this.map.isCell(pos.x, pos.y)){
+                            this.map.getCell(pos.x, pos.y).render()
+                        }
+                    }
                 }
             }
         }
@@ -584,10 +593,10 @@ class Toolbar {
     addColorpickers() {
         this.foregroundColorPicker = $('<button id="fgCp" class="btn btn-default">'
           //+ '<input type="text" value="primary" class="form-control" />'
-          + '<span class="add-on"><i></i></span>'
+          + '<span class="material-icons">lens</span>'
           + '</button>');
         this.backgroundColorPicker = $('<button id="bgCp" class="btn btn-default">'
-          + '<span class="add-on"><i></i></span>'
+          + '<span class="material-icons">lens</span>'
           + '</button>');
         var t = this;
         this.foregroundColorPicker.on("click", function(){ t.foregroundColorPicker.colorpicker("show"); });
@@ -603,6 +612,7 @@ class Toolbar {
             '#d9534f': '#d9534f'};
         this.foregroundColorPicker.colorpicker({"color": this.foregroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
             var color = t.foregroundColorPicker.colorpicker("getValue")
+            t.foregroundColorPicker.find("span").css("color", color);
             t.foregroundColor = color;
             t.pencil.foregroundColor = color;
             t.bucket.foregroundColor = color;
@@ -610,6 +620,7 @@ class Toolbar {
         });
         this.backgroundColorPicker.colorpicker({"color":this.backgroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
             var color = t.backgroundColorPicker.colorpicker("getValue")
+            t.backgroundColorPicker.find("span").css("color", color);
             t.backgroundColor = color;
             t.pencil.backgroundColor = color;
             t.bucket.backgroundColor = color;
