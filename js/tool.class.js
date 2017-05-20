@@ -224,86 +224,86 @@ class SculptureTool extends Tool {
         this.previewPositions = [];
         this.latest = {x:0, y:0};
     }
-  onMouseDown(evt){
-    super.onClick(evt);
-    var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-    var pos = this.evtToCoordinates(evt);
-    pos.x = Math.floor(pos.x);
-    pos.y = Math.floor(pos.y);
-    pos.which = evt.which;
-    this.latest.which = evt.which;
+    onMouseDown(evt){
+        super.onClick(evt);
+        var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+        var pos = this.evtToCoordinates(evt);
+        pos.x = Math.floor(pos.x);
+        pos.y = Math.floor(pos.y);
+        pos.which = evt.which;
+        this.latest.which = evt.which;
 
-    var t = this;
-    this.positions.push(pos);
-    if(evt.shiftKey){
-      if(this.positions.length == 2){
-        var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-        line.forEach(function(pos){
-          t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-        });
-        this.positions.splice(0,1);
-        this.wasShifted = true;
-      }
-    }else{
-      if(this.wasShifted){
-        this.positions = [pos];
-        this.wasShifted = false;
-      }else if(this.positions.length == 2){
-        var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-        line.forEach(function(pos){
-          t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-        });
-        this.positions = [];
-      }
-    }
-        this.previewPositions.forEach(function(p){
-          t.map.removeCell(p.x, p.y, -1);
-        });
-  }
-
-  onMouseMove(evt){
-    var pos = this.evtToCoordinates(evt);
-    pos.x = Math.floor(pos.x);
-    pos.y = Math.floor(pos.y);
-    var fillStyle = this.latest.which == 1 ? this.foregroundColor : this.backgroundColor;
-    if(this.positions.length > 0){
-      if (this.latest.x != pos.x || this.latest.y != pos.y) {
         var t = this;
+        this.positions.push(pos);
+        if(evt.shiftKey){
+            if(this.positions.length == 2){
+                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                line.forEach(function(pos){
+                    t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+                });
+                this.positions.splice(0,1);
+                this.wasShifted = true;
+            }
+        }else{
+            if(this.wasShifted){
+                this.positions = [pos];
+                this.wasShifted = false;
+            }else if(this.positions.length == 2){
+                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                line.forEach(function(pos){
+                    t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+                });
+                this.positions = [];
+            }
+        }
         this.previewPositions.forEach(function(p){
-          t.map.removeCell(p.x, p.y, -1);
+            t.map.removeCell(p.x, p.y, -1);
         });
-        this.previewPositions = [];
-        this.latest.x = pos.x;
-        this.latest.y = pos.y;
-        this.previewPositions = this.line(this.positions[0].x, this.positions[0].y, pos.x, pos.y);
-        this.previewPositions.forEach(function(p){
-          t.map.getCell(p.x, p.y, -1);
-          t.map.data[-1][p.x][p.y] = "#ff00ff";
-
-        });
-        this.map.render();
-      }
     }
-  }
 
-  line(x0, y0, x1, y1, fillStyle){
-    var dx =  Math.abs(x1-x0);
-    var sx = x0<x1 ? 1 : -1;
-    var dy = -Math.abs(y1-y0)
-    var sy = y0<y1 ? 1 : -1;
-    var err = dx+dy, e2;
-    var i = 0;
+    onMouseMove(evt){
+        var pos = this.evtToCoordinates(evt);
+        pos.x = Math.floor(pos.x);
+        pos.y = Math.floor(pos.y);
+        var fillStyle = this.latest.which == 1 ? this.foregroundColor : this.backgroundColor;
+        if(this.positions.length > 0){
+            if (this.latest.x != pos.x || this.latest.y != pos.y) {
+                var t = this;
+                this.previewPositions.forEach(function(p){
+                    t.map.removeCell(p.x, p.y, -1);
+                });
+                this.previewPositions = [];
+                this.latest.x = pos.x;
+                this.latest.y = pos.y;
+                this.previewPositions = this.line(this.positions[0].x, this.positions[0].y, pos.x, pos.y);
+                this.previewPositions.forEach(function(p){
+                    t.map.getCell(p.x, p.y, -1);
+                    t.map.data[-1][p.x][p.y] = "#ff00ff";
 
-    var line = [];
-    while(1 && i++ < 200){
-      line.push({x: x0, y: y0});
-      if (x0==x1 && y0==y1) break;
-      e2 = 2*err;
-      if (e2 > dy) { err += dy; x0 += sx; }
-      if (e2 < dx) { err += dx; y0 += sy; }
+                });
+                this.map.render();
+            }
+        }
     }
-    return line;
-  }
+
+    line(x0, y0, x1, y1, fillStyle){
+        var dx =  Math.abs(x1-x0);
+        var sx = x0<x1 ? 1 : -1;
+        var dy = -Math.abs(y1-y0)
+        var sy = y0<y1 ? 1 : -1;
+        var err = dx+dy, e2;
+        var i = 0;
+
+        var line = [];
+        while(1 && i++ < 200){
+            line.push({x: x0, y: y0});
+            if (x0==x1 && y0==y1) break;
+            e2 = 2*err;
+            if (e2 > dy) { err += dy; x0 += sx; }
+            if (e2 < dx) { err += dx; y0 += sy; }
+        }
+        return line;
+    }
 }
 
 class PencilTool extends SculptureTool {
@@ -355,11 +355,11 @@ class PencilTool extends SculptureTool {
 
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
-                  this.changeCellFillstyle(pos.x, this.shifted.y, fillStyle);
-                  this.map.getCell(pos.x, this.shifted.y).render();
+                    this.changeCellFillstyle(pos.x, this.shifted.y, fillStyle);
+                    this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
-                  this.changeCellFillstyle(this.shifted.x, pos.y, fillStyle);
-                  this.map.getCell(this.shifted.x, pos.y).render();
+                    this.changeCellFillstyle(this.shifted.x, pos.y, fillStyle);
+                    this.map.getCell(this.shifted.x, pos.y).render();
                 } else {
                     if (this.shifted.x || this.shifted.y) {
                         if (Math.abs(this.shifted.x - pos.x) >= 1) {
@@ -590,29 +590,29 @@ class Toolbar {
         this.foregroundColorPicker.on("click", function(){ t.foregroundColorPicker.colorpicker("show"); });
         this.backgroundColorPicker.on("click", function(){ t.backgroundColorPicker.colorpicker("show"); });
         var defaultColors = { '#000000': '#000000',
-                              '#ffffff': '#ffffff',
-                              '#FF0000': '#FF0000',
-                              '#777777': '#777777',
-                              '#337ab7': '#337ab7',
-                              '#5cb85c': '#5cb85c',
-                              '#5bc0de': '#5bc0de',
-                              '#f0ad4e': '#f0ad4e',
-                              '#d9534f': '#d9534f'};
+            '#ffffff': '#ffffff',
+            '#FF0000': '#FF0000',
+            '#777777': '#777777',
+            '#337ab7': '#337ab7',
+            '#5cb85c': '#5cb85c',
+            '#5bc0de': '#5bc0de',
+            '#f0ad4e': '#f0ad4e',
+            '#d9534f': '#d9534f'};
         this.foregroundColorPicker.colorpicker({"color": this.foregroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
-          var color = t.foregroundColorPicker.colorpicker("getValue")
-          t.foregroundColor = color;
-          t.pencil.foregroundColor = color;
-          t.bucket.foregroundColor = color;
-          t.path.foregroundColor = color;
+            var color = t.foregroundColorPicker.colorpicker("getValue")
+            t.foregroundColor = color;
+            t.pencil.foregroundColor = color;
+            t.bucket.foregroundColor = color;
+            t.path.foregroundColor = color;
         });
         this.backgroundColorPicker.colorpicker({"color":this.backgroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
-          var color = t.backgroundColorPicker.colorpicker("getValue")
-          t.backgroundColor = color;
-          t.pencil.backgroundColor = color;
-          t.bucket.backgroundColor = color;
-          t.path.backgroundColor = color;
+            var color = t.backgroundColorPicker.colorpicker("getValue")
+            t.backgroundColor = color;
+            t.pencil.backgroundColor = color;
+            t.bucket.backgroundColor = color;
+            t.path.backgroundColor = color;
         });
-      var btnGrp = $("<div class='btn-group'></div>");
+        var btnGrp = $("<div class='btn-group'></div>");
         btnGrp.append(this.foregroundColorPicker);
         btnGrp.append(this.backgroundColorPicker);
         this.form.append(btnGrp);
@@ -625,9 +625,9 @@ class Toolbar {
         tool.button.addClass("btn-primary");
         this.panel.find(".panel-body").append(this.activeTool.panel);
         if(this.customCursor){
-          this.activeTool.enableCursor();
+            this.activeTool.enableCursor();
         }else{
-          $("body").css('cursor', 'default');
+            $("body").css('cursor', 'default');
         }
     }
 
