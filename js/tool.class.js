@@ -280,13 +280,15 @@ class PencilTool extends SculptureTool {
         var pos = this.evtToCoordinates(evt);
         pos.x = Math.floor(pos.x);
         pos.y = Math.floor(pos.y);
+        var newColor;
         if (evt.type == "click") {
-            var cell = this.changeCellFillstyle(pos.x, pos.y, this.foregroundColor);
-            if(cell) cell.render();
-        } else {
-            var cell = this.changeCellFillstyle(pos.x, pos.y, this.backgroundColor);
-            if(cell) cell.render();
+            newColor = this.foregroundColor;
+        }else {
+            newColor = this.backgroundColor;
         }
+        var pencilClickCommand = new PencilClickCommand(this.map, pos.x, pos.y, this.map.getCell(pos.x, pos.y).fillStyle, newColor)
+        var cell = this.changeCellFillstyle(pos.x, pos.y, newColor);
+        if(cell) cell.render();
     }
     onMouseDown(evt){
         if(evt.which == 1 || evt.which == 3){

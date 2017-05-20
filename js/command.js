@@ -12,7 +12,7 @@ class Command {
     }
 }
 
-class PencilCommand extends Command{
+class PencilClickCommand extends Command{
     constructor(map, x, y, prevColor, newColor) {
         this.map = map
         this.x = x
