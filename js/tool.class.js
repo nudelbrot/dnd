@@ -212,8 +212,9 @@ class SculptureTool extends Tool {
                 } else {
                     picker.colorpicker("setValue", this.map.fillStyle);
                 }
-                return;
+                return true;
             }
+          return false;
         }
 
     }
@@ -229,40 +230,41 @@ class SculptureTool extends Tool {
         this.latest = {x:0, y:0};
     }
     onMouseDown(evt){
-        super.onClick(evt);
-        var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-        var pos = this.evtToCoordinates(evt);
-        pos.x = Math.floor(pos.x);
-        pos.y = Math.floor(pos.y);
-        pos.which = evt.which;
-        this.latest.which = evt.which;
+        if(!super.onClick(evt)){
+          var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+          var pos = this.evtToCoordinates(evt);
+          pos.x = Math.floor(pos.x);
+          pos.y = Math.floor(pos.y);
+          pos.which = evt.which;
+          this.latest.which = evt.which;
 
-        var t = this;
-        this.positions.push(pos);
-        if(evt.shiftKey){
+          var t = this;
+          this.positions.push(pos);
+          if(evt.shiftKey){
             if(this.positions.length == 2){
-                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-                line.forEach(function(pos){
-                    t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-                });
-                this.positions.splice(0,1);
-                this.wasShifted = true;
+              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+              line.forEach(function(pos){
+                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+              });
+              this.positions.splice(0,1);
+              this.wasShifted = true;
             }
-        }else{
+          }else{
             if(this.wasShifted){
-                this.positions = [pos];
-                this.wasShifted = false;
-            }else if(this.positions.length == 2){
-                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-                line.forEach(function(pos){
-                    t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-                });
-                this.positions = [];
+              this.wasShifted = false;
             }
-        }
-        this.previewPositions.forEach(function(p){
+            if(this.positions.length == 2){
+              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+              line.forEach(function(pos){
+                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+              });
+              this.positions = [];
+            }
+          }
+          this.previewPositions.forEach(function(p){
             t.map.removeCell(p.x, p.y, -1);
-        });
+          });
+        }
     }
 
     onMouseMove(evt){
