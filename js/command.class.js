@@ -13,22 +13,26 @@ class Command {
 }
 
 class PencilClickCommand extends Command {
-    constructor(map, x, y, prevColor, newColor) {
+    constructor(pencilTool, x, y, prevColor, newColor) {
         super()
-        this.map = map
+        this.pencilTool = pencilTool
+        this.map = pencilTool.map
         this.x = x
         this.y = y
         this.prevColor = prevColor
         this.newColor = newColor
+        console.debug("prev " + this.prevColor + " new " + this.newColor)
     }
     redo() {
-        this.map.changeCellFillstyle(this.x, this.y, this.newColor, true)
+        this.pencilTool.changeCellFillstyle(this.x, this.y, this.newColor, true)
+        console.debug("prev " + this.prevColor + " new " + this.newColor)
         this.map.historyIndex++;
         console.debug(this.map.historyIndex)
     }
 
     undo() {
-        this.map.changeCellFillstyle(this.x, this.y, this.prevColor, true)
+        this.pencilTool.changeCellFillstyle(this.x, this.y, this.prevColor, true)
+        console.debug("prev " + this.prevColor + " new " + this.newColor)
         this.map.historyIndex--;
         console.debug(this.map.historyIndex)
     }

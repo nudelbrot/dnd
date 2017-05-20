@@ -58,9 +58,14 @@ class Cell {
             this.render();
         }
 
-        newCommand(command){
+        newCommand(command, toolbar){
+            if (this.history.length > 0){
+                this.history = this.history.slice(0, this.historyIndex+1)
+                console.debug("slice from " + 0 + " to " + (this.historyIndex+1))
+            }
             this.history.push(command)
             this.historyIndex++;
+            toolbar.checkUndoAndRedoButton()
             console.debug(this.history, " index: " + this.historyIndex);
         }
 
@@ -125,6 +130,7 @@ class Cell {
                     this.onRenderFunction();
                 }
             }
+            return true;
         }
 
         scale(mode){
