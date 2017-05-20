@@ -175,8 +175,8 @@ class Cell {
                         }
                     }
                     if(this.data[-1] && this.data[-1][x] && this.data[-1][x][y]){
-                        ctx.fillStyle = this.data[-1][x][y];
-                        ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
+                      ctx.fillStyle = this.data[-1][x][y];
+                      ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
                     }
                 }
             }
