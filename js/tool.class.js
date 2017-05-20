@@ -286,7 +286,8 @@ class PencilTool extends SculptureTool {
         }else {
             newColor = this.backgroundColor;
         }
-        this.map.history.push(new PencilClickCommand(this.map, pos.x, pos.y, this.map.getCell(pos.x, pos.y).fillStyle, newColor))
+        var pencilClickCommand = new PencilClickCommand(this.map, pos.x, pos.y, this.map.getCell(pos.x, pos.y).fillStyle, newColor)
+        this.map.history.push(pencilClickCommand)
         var cell = this.changeCellFillstyle(pos.x, pos.y, newColor);
         if(cell) cell.render();
     }

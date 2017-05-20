@@ -1,6 +1,6 @@
 class Command {
     constructor() {
-        throw new Error("Can't instantiate abstract class!");
+        //throw new Error("Can't instantiate abstract class!");
     }
 
     execute() {
@@ -14,6 +14,7 @@ class Command {
 
 class PencilClickCommand extends Command{
     constructor(map, x, y, prevColor, newColor) {
+        super()
         this.map = map
         this.x = x
         this.y = y
