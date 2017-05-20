@@ -58,7 +58,7 @@ class MiniMap{
     ctx.globalCompositeOperation = "source-over";
     var t = this;
     var p = {x: t.canvas.width/2 - t.viewport.width()/2, y: t.canvas.height/2  - t.viewport.height()/2};
-    var currentCells = [].concat.apply([],this.map.data).filter(function(obj){return obj;});
+    var currentCells = this.map.getCurrentCells();
     currentCells.forEach(function(cell){
         ctx.fillStyle = cell.fillStyle;
         ctx.fillRect(p.x + cell.x, p.y + cell.y, 1, 1);

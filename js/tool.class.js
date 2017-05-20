@@ -40,6 +40,31 @@ class Tool {
 
 }
 
+
+class PrintTool extends Tool {
+  constructor(map) {
+    super(map);
+    this.icon = "print";
+    this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+    var t = this;
+    this.button.on("click", function(){
+      t.openModal();
+    });
+    this.openlist = [];
+  }
+
+  openModal(){
+    var message = "<input></input>";
+    BootstrapDialog.show({
+      title: "Print Settings",
+      message: message
+    });
+    //this.generate();
+  }
+ 
+
+}
+
 class SelectionTool extends Tool {
     constructor(map) {
         super(map);
@@ -221,6 +246,8 @@ class PathTool extends SculptureTool {
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.positions = [];
         this.wasShifted = false;
+        this.previewPositions = [];
+        this.latest = {x:0, y:0};
     }
   onMouseDown(evt){
     super.onClick(evt);
@@ -228,6 +255,8 @@ class PathTool extends SculptureTool {
     var pos = this.evtToCoordinates(evt);
     pos.x = Math.floor(pos.x);
     pos.y = Math.floor(pos.y);
+    pos.which = evt.which;
+    this.latest.which = evt.which;
 
     this.positions.push(pos);
     if(evt.shiftKey){
@@ -246,6 +275,34 @@ class PathTool extends SculptureTool {
       }
     }
   }
+
+  onMouseMove(evt){
+    var pos = this.evtToCoordinates(evt);
+    pos.x = Math.floor(pos.x);
+    pos.y = Math.floor(pos.y);
+    var fillStyle = this.latest.which == 1 ? this.foregroundColor : this.backgroundColor;
+    if(this.positions.length > 0){
+      if (this.latest.x != pos.x || this.latest.y != pos.y) {
+        var t = this;
+        this.previewPositions.forEach(function(p){
+          //if(t.map.data[-1] && t.map.data[-1][p.x] && t.map.data[-1][p.x][p.y])
+          //delete(t.map.data[-1][p.x][p.y]);
+          t.map.removeCell(p.x, p.y, -1);
+        });
+        this.previewPositions = [];
+        this.latest.x = pos.x;
+        this.latest.y = pos.y;
+        this.previewPositions = this.line(this.positions[0].x, this.positions[0].y, pos.x, pos.y);
+        this.previewPositions.forEach(function(p){
+          t.map.getCell(p.x, p.y, -1);
+          t.map.data[-1][p.x][p.y] = "#ff00ff";
+
+        });
+        this.map.render();
+      }
+    }
+  }
+
   line(x0, y0, x1, y1, fillStyle){
     var dx =  Math.abs(x1-x0);
     var sx = x0<x1 ? 1 : -1;
@@ -254,13 +311,15 @@ class PathTool extends SculptureTool {
     var err = dx+dy, e2;
     var i = 0;
 
+    var line = [];
     while(1 && i++ < 200){
-      this.changeCellFillstyle(x0, y0, fillStyle);
+      line.push({x: x0, y: y0});
       if (x0==x1 && y0==y1) break;
       e2 = 2*err;
-      if (e2 > dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */
-      if (e2 < dx) { err += dx; y0 += sy; } /* e_xy+e_y < 0 */
+      if (e2 > dy) { err += dy; x0 += sx; }
+      if (e2 < dx) { err += dx; y0 += sy; }
     }
+    return line;
   }
 }
 
@@ -366,9 +425,7 @@ class BucketTool extends SculptureTool {
         var pos = this.evtToCoordinates(evt);
         var x = Math.floor(pos.x)
         var y = Math.floor(pos.y)
-        this.listOfCurrentCells = [].concat.apply([],this.map.data).filter(function(obj){
-          return obj;
-        });
+        this.listOfCurrentCells = this.map.getCurrentCells(x, y);
         this.inListOfCurrentCells = this.map.isCell(x,y)
         this.coordsOfCurrentCells = this.listOfCurrentCells.map(function (obj) {
             return [obj.x, obj.y]
@@ -482,7 +539,7 @@ class Toolbar {
         this.addColorpickers();
         this.addTools();
         this.customCursor = false;
-        this.backgroundColorPicker.colorpicker("setValue", "#ffffff");
+        this.backgroundColorPicker.colorpicker("setValue", "#eeeeee");
         target.append(this.panel[0]);
         var t = this;
         $(this.map.canvas).bind('contextmenu', function (e) {
@@ -510,6 +567,7 @@ class Toolbar {
         grp.append(this.pencil.button);
         grp.append(this.path.button);
         grp.append(this.bucket.button);
+        //grp.append(this.print.button);
         var t = this;
 
         this.path.button.on("click", function () {
@@ -529,9 +587,9 @@ class Toolbar {
         });
 
         this.activeTool = this.pencil;
-        //this.setActiveTool(this.pencil);
+        this.setActiveTool(this.pencil);
         //form.append(grp);
-        this.form.append(grp);
+        this.form.prepend(grp);
 
     }
 
@@ -544,6 +602,8 @@ class Toolbar {
           + '<span class="add-on"><i></i></span>'
           + '</button>');
         var t = this;
+        this.foregroundColorPicker.on("click", function(){ t.foregroundColorPicker.colorpicker("show"); });
+        this.backgroundColorPicker.on("click", function(){ t.backgroundColorPicker.colorpicker("show"); });
         var defaultColors = { '#000000': '#000000',
                               '#ffffff': '#ffffff',
                               '#FF0000': '#FF0000',
