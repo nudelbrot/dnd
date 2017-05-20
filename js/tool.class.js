@@ -591,10 +591,10 @@ class Toolbar {
     addColorpickers() {
         this.foregroundColorPicker = $('<button id="fgCp" class="btn btn-default">'
           //+ '<input type="text" value="primary" class="form-control" />'
-          + '<span class="add-on"><i></i></span>'
+          + '<span class="material-icons">lens</span>'
           + '</button>');
         this.backgroundColorPicker = $('<button id="bgCp" class="btn btn-default">'
-          + '<span class="add-on"><i></i></span>'
+          + '<span class="material-icons">lens</span>'
           + '</button>');
         var t = this;
         this.foregroundColorPicker.on("click", function(){ t.foregroundColorPicker.colorpicker("show"); });
@@ -610,6 +610,7 @@ class Toolbar {
             '#d9534f': '#d9534f'};
         this.foregroundColorPicker.colorpicker({"color": this.foregroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
             var color = t.foregroundColorPicker.colorpicker("getValue")
+            t.foregroundColorPicker.find("span").css("color", color);
             t.foregroundColor = color;
             t.pencil.foregroundColor = color;
             t.bucket.foregroundColor = color;
@@ -617,6 +618,7 @@ class Toolbar {
         });
         this.backgroundColorPicker.colorpicker({"color":this.backgroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
             var color = t.backgroundColorPicker.colorpicker("getValue")
+            t.backgroundColorPicker.find("span").css("color", color);
             t.backgroundColor = color;
             t.pencil.backgroundColor = color;
             t.bucket.backgroundColor = color;
