@@ -626,8 +626,16 @@ class Toolbar {
         this.buttonRedo = $('<button id="RedoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "redo" + '</span></button>');
 
         var t = this;
-        this.buttonUndo.on("click", function(){ if(!t.buttonUndo.hasClass("disabled")) t.map.history[t.map.historyIndex].undo() });
-        this.buttonRedo.on("click", function(){ if(!t.buttonRedo.hasClass("disabled")) t.map.history[t.map.historyIndex + 1].redo() });
+        this.buttonUndo.on("click", function(){
+            if(!t.buttonUndo.hasClass("disabled")) {
+                t.map.history[t.map.historyIndex].undo()
+                t.checkUndoAndRedoButton()
+            } });
+        this.buttonRedo.on("click", function(){ 
+            if(!t.buttonRedo.hasClass("disabled")) {
+                t.map.history[t.map.historyIndex + 1].redo()
+                t.checkUndoAndRedoButton()
+            } });
         var btnGrp = $("<div class='btn-group'></div>");
         btnGrp.append(this.buttonUndo);
         btnGrp.append(this.buttonRedo);
