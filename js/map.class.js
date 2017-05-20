@@ -102,7 +102,7 @@ class RectMap {
 
   removeCell(x, y, z = 0) {
       var ctx = this.canvas.getContext("2d");
-      ctx.clearRect(x * this.cellWidth, y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1)
+      //ctx.clearRect(x * this.cellWidth, y * this.cellHeight, this.cellWidth + 1, this.cellHeight + 1)
     if(this.data[z] && this.data[z][x] && this.data[z][x][y]){
       this.data[z][x][y] = undefined;
       delete this.data[z][x][y];

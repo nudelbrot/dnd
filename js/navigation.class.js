@@ -85,7 +85,7 @@ class Navigation{
     this.map.on("mousemove", function(evt){t.onMouseMove(evt);});
     this.map.on("mousedown", function(evt){t.onMouseDown(evt);});
     this.map.on("mouseup", function(evt){t.onMouseUp(evt);});
-    //this.map.on("mousewheel", function(evt){t.onMouseWheel(evt);});
+    this.map.on("mousewheel", function(evt){t.onMouseWheel(evt);});
     $("body").on("keydown", function(evt){
       t.onKeyDown(evt);
     });
@@ -93,9 +93,17 @@ class Navigation{
 
   onMouseWheel(evt){
     if(evt.originalEvent.deltaY > 0){
-      this.map.scale("out");
+      if(evt.shiftKey){
+        this.translate(1, 0);
+      }else{
+        this.translate(0, -1);
+      }
     }else{
-      this.map.scale("in");
+      if(evt.shiftKey){
+        this.translate(-1, 0);
+      }else{
+        this.translate(0, 1);
+      }
     }
   }
 
