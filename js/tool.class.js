@@ -1,6 +1,7 @@
 class Tool {
-    constructor(map) {
-        this.map = map;
+    constructor(toolbar) {
+        this.toolbar = toolbar
+        this.map = toolbar.map;
         this.icon = "";
         this.button = undefined;
         this.panel = $("<div class='panel panel-default toolSettings'></div>");
@@ -41,15 +42,15 @@ class Tool {
 }
 
 class SelectionTool extends Tool {
-    constructor(map) {
-        super(map);
+    constructor(toolbar) {
+        super(toolbar);
     }
 
 }
 
 class RectSelectionTool extends SelectionTool {
-    constructor(map) {
-        super(map);
+    constructor(toolbar) {
+        super(toolbar);
         this.icon = "crop_free";
         this.cursor.id = this.icon;
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
@@ -57,8 +58,8 @@ class RectSelectionTool extends SelectionTool {
 }
 
 class MagicStickTool extends SelectionTool {
-    constructor(map) {
-        super(map);
+    constructor(toolbar) {
+        super(toolbar);
         this.icon = "open_with";
         this.cursor = {id: "open_with", dx: 10, dy: 10};
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
@@ -168,8 +169,8 @@ class MagicStickTool extends SelectionTool {
 }
 
 class SculptureTool extends Tool {
-    constructor(map, foregroundColorPicker, backgroundColorPicker) {
-        super(map);
+    constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
+        super(toolbar);
         this.foregroundColor = "#000000";
         this.backgroundColor = "#ffffff";
         this.foregroundColorPicker = foregroundColorPicker;
@@ -215,8 +216,8 @@ class SculptureTool extends Tool {
     }
 
     class PathTool extends SculptureTool {
-        constructor(map, foregroundColorPicker, backgroundColorPicker) {
-        super(map, foregroundColorPicker, backgroundColorPicker);
+        constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
+        super(toolbar, foregroundColorPicker, backgroundColorPicker);
         this.icon = "linear_scale";
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.positions = [];
@@ -307,8 +308,8 @@ class SculptureTool extends Tool {
 }
 
 class PencilTool extends SculptureTool {
-    constructor(map, foregroundColorPicker, backgroundColorPicker) {
-        super(map, foregroundColorPicker, backgroundColorPicker);
+    constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
+        super(toolbar, foregroundColorPicker, backgroundColorPicker);
         this.size = 1;
         this.icon = "edit"
         this.cursor = {id: "edit", dx: 2, dy: 20};
@@ -328,8 +329,8 @@ class PencilTool extends SculptureTool {
         }else {
             newColor = this.backgroundColor;
         }
-        var pencilClickCommand = new PencilClickCommand(this.map, pos.x, pos.y, this.map.getCell(pos.x, pos.y).fillStyle, newColor)
-        this.map.history.push(pencilClickCommand)
+        this.map.newCommand(new PencilClickCommand(this.map, pos.x, pos.y, this.map.getCell(pos.x, pos.y).fillStyle, newColor));
+        this.toolbar.checkUndoAndRedoButton();
         var cell = this.changeCellFillstyle(pos.x, pos.y, newColor);
         if(cell) cell.render();
     }
@@ -390,8 +391,8 @@ class PencilTool extends SculptureTool {
 }
 
 class BucketTool extends SculptureTool {
-    constructor(map, foregroundColorPicker, backgroundColorPicker) {
-        super(map, foregroundColorPicker, backgroundColorPicker);
+    constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
+        super(toolbar, foregroundColorPicker, backgroundColorPicker);
         this.icon = "format_color_fill";
         this.cursor.id = this.icon;
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
@@ -524,6 +525,8 @@ class Toolbar {
         this.backgroundColor = "#ffffff";
         this.addColorpickers();
         this.addTools();
+        this.addUndoRedoButtons();
+        this.form.children().css('padding-right', '10px');
         this.customCursor = false;
         this.backgroundColorPicker.colorpicker("setValue", "#eeeeee");
         target.append(this.panel[0]);
@@ -540,11 +543,11 @@ class Toolbar {
     }
 
     addTools() {
-        this.rectSelector = new RectSelectionTool(this.map);
-        this.magicStick = new MagicStickTool(this.map);
-        this.pencil = new PencilTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
-        this.bucket = new BucketTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
-        this.path = new PathTool(this.map, this.foregroundColorPicker, this.backgroundColorPicker);
+        this.rectSelector = new RectSelectionTool(this);
+        this.magicStick = new MagicStickTool(this);
+        this.pencil = new PencilTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
+        this.bucket = new BucketTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
+        this.path = new PathTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
 
         var grp = $('<div class="btn-group" role="group"></div>');
 
@@ -618,13 +621,31 @@ class Toolbar {
         this.form.append(btnGrp);
     }
 
-    addUndoRediButtons(){
-        this.buttonUndo = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
-        this.buttonRedo = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+    addUndoRedoButtons(){
+        this.buttonUndo = $('<button id="UndoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "undo" + '</span></button>');
+        this.buttonRedo = $('<button id="RedoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "redo" + '</span></button>');
+
+        var t = this;
+        this.buttonUndo.on("click", function(){ if(!t.buttonUndo.hasClass("disabled")) t.map.history[t.map.historyIndex].undo() });
+        this.buttonRedo.on("click", function(){ if(!t.buttonRedo.hasClass("disabled")) t.map.history[t.map.historyIndex + 1].redo() });
         var btnGrp = $("<div class='btn-group'></div>");
         btnGrp.append(this.buttonUndo);
         btnGrp.append(this.buttonRedo);
-        this.form.append(btnGrp);
+        this.form.prepend(btnGrp);
+    }
+
+    checkUndoAndRedoButton(){
+        if(this.map.historyIndex == -1){
+            this.buttonUndo.addClass("disabled")
+        } else {
+            this.buttonUndo.removeClass("disabled")
+        }
+        if(this.map.historyIndex == this.map.history.length - 1){
+            this.buttonRedo.addClass("disabled")
+        } else {
+            this.buttonRedo.removeClass("disabled")
+        }
+
     }
 
     setActiveTool(tool) {

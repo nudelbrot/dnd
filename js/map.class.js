@@ -34,28 +34,35 @@ class Cell {
     }
 
     class RectMap {
-      constructor(target, cellWidth=24, cellHeight=24) {
-          this.canvas = $("<canvas></canvas>")[0];
-          var t = this;
-          $("html").css("overflow", "hidden");
-          this.width = function(){return Math.ceil($(target).width()/cellWidth);}
-          this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/cellHeight);}
+        constructor(target, cellWidth=24, cellHeight=24) {
+            this.canvas = $("<canvas></canvas>")[0];
+            var t = this;
+            $("html").css("overflow", "hidden");
+            this.width = function(){return Math.ceil($(target).width()/cellWidth);}
+            this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/cellHeight);}
 
-          var ctx = this.canvas.getContext("2d");
-          this.cellWidth = cellWidth;
-          this.cellHeight = cellHeight;
-          this.translation = {x: 0, y: 0};
-          this.scaleLevel = 1.0;
-          this.gridColor = "#aaaaaa";
-          this.fillStyle = "#eeeeee";
+            var ctx = this.canvas.getContext("2d");
+            this.cellWidth = cellWidth;
+            this.cellHeight = cellHeight;
+            this.translation = {x: 0, y: 0};
+            this.scaleLevel = 1.0;
+            this.gridColor = "#aaaaaa";
+            this.fillStyle = "#eeeeee";
 
-          this.history = [];
-          this.data = [];
-          this.panel = $("<div></div>");
-          this.panel.append(this.canvas);
-          target.append(this.panel[0]);
-          this.render();
-      }
+            this.history = [];
+            this.historyIndex = -1;
+            this.data = [];
+            this.panel = $("<div></div>");
+            this.panel.append(this.canvas);
+            target.append(this.panel[0]);
+            this.render();
+        }
+
+        newCommand(command){
+            this.history.push(command)
+            this.historyIndex++;
+            console.debug(this.history, " index: " + this.historyIndex);
+        }
 
         getCell(x, y, z=0) {
             if(z >= 0){

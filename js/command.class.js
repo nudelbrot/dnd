@@ -3,7 +3,7 @@ class Command {
         //throw new Error("Can't instantiate abstract class!");
     }
 
-    execute() {
+    redo() {
         throw new Error("Abstract method!");
     }
 
@@ -21,11 +21,15 @@ class PencilClickCommand extends Command {
         this.prevColor = prevColor
         this.newColor = newColor
     }
-    execute() {
-        this.map.changeFillStyle(this.x, this.y, this.newColor, true)
+    redo() {
+        this.map.changeCellFillstyle(this.x, this.y, this.newColor, true)
+        this.map.historyIndex++;
+        console.debug(this.map.historyIndex)
     }
 
     undo() {
-        this.map.changeFillStyle(this.x, this.y, this.prevColor, true)
+        this.map.changeCellFillstyle(this.x, this.y, this.prevColor, true)
+        this.map.historyIndex--;
+        console.debug(this.map.historyIndex)
     }
 }
