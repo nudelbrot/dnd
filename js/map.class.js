@@ -49,6 +49,7 @@ class RectMap {
     this.gridColor = "#aaaaaa";
     this.fillStyle = "#eeeeee";
 
+    this.history = [];
     this.data = [];
     this.panel = $("<div></div>");
     this.panel.append(this.canvas);
