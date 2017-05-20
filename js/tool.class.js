@@ -618,6 +618,15 @@ class Toolbar {
         this.form.append(btnGrp);
     }
 
+    addUndoRediButtons(){
+        this.buttonUndo = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+        this.buttonRedo = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
+        var btnGrp = $("<div class='btn-group'></div>");
+        btnGrp.append(this.buttonUndo);
+        btnGrp.append(this.buttonRedo);
+        this.form.append(btnGrp);
+    }
+
     setActiveTool(tool) {
         this.activeTool.panel.detach();
         this.activeTool = tool;
