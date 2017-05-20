@@ -28,7 +28,3 @@ class PencilClickCommand extends Command{
         this.map.changeFillStyle(this.x, this.y, this.prevColor, true)
     }
 }
-
-class BucketCommand{
-    
-}
