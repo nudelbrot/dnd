@@ -12,28 +12,31 @@ class Command {
     }
 }
 
-class PencilClickCommand extends Command {
-    constructor(pencilTool, x, y, prevColor, newColor) {
+class PencilCommand extends Command {
+    constructor(pencilTool, listOfCoords, prevColor, newColor) {
         super()
         this.pencilTool = pencilTool
         this.map = pencilTool.map
-        this.x = x
-        this.y = y
+        this.listOfCoords = listOfCoords
         this.prevColor = prevColor
         this.newColor = newColor
-        console.debug("prev " + this.prevColor + " new " + this.newColor)
+        //console.debug(this)
     }
     redo() {
-        this.pencilTool.changeCellFillstyle(this.x, this.y, this.newColor, true)
-        console.debug("prev " + this.prevColor + " new " + this.newColor)
+        var t = this;
+        this.listOfCoords.forEach(function (coord) {
+            t.pencilTool.changeCellFillstyle(coord[0], coord[1], t.newColor, false)
+        })
+        this.map.render();
         this.map.historyIndex++;
-        console.debug(this.map.historyIndex)
     }
 
     undo() {
-        this.pencilTool.changeCellFillstyle(this.x, this.y, this.prevColor, true)
-        console.debug("prev " + this.prevColor + " new " + this.newColor)
+        var t = this;
+        this.listOfCoords.forEach(function (coord) {
+            t.pencilTool.changeCellFillstyle(coord[0], coord[1], t.prevColor, false)
+        })
+        this.map.render();
         this.map.historyIndex--;
-        console.debug(this.map.historyIndex)
     }
 }
