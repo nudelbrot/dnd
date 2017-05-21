@@ -73,7 +73,7 @@ class MiniMap{
         this.map = map;
     
         this.panel = $("<div></div>");
-        this.panel.css({"position": "absolute", "float":"right", "right": "5px", "top": "65px"});
+        this.panel.css({"position": "absolute", "float":"right", "right": "10px", "bottom": "5px"});
         this.minimap = new MiniMap(this.panel, map, this);
         this.target.append(this.panel[0]);
         this.jumppoints = [];
