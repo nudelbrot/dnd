@@ -140,7 +140,9 @@ class SculptureTool extends Tool {
     }
 
     commitChangeBackgroundCommand(oldMapColor){
-        this.map.newCommand(new ChangeBackgroundCommand(this.map, oldMapColor, this.newColor), this.toolbar);
+        if (this.newColor != oldMapColor){
+            this.map.newCommand(new ChangeBackgroundCommand(this.map, oldMapColor, this.newColor), this.toolbar);
+        }
     }
 }
 class PathTool extends SculptureTool {
