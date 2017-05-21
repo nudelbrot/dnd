@@ -13,10 +13,10 @@ class Command {
 }
 
 class SculptureCommand extends Command {
-    constructor(pencilTool, listOfCoords, newColor) {
+    constructor(sculptureTool, listOfCoords, newColor) {
         super()
-        this.pencilTool = pencilTool
-        this.map = pencilTool.map
+        this.sculptureTool = sculptureTool
+        this.map = sculptureTool.map
         this.listOfCoords = listOfCoords
         this.newColor = newColor
         //console.debug(this)
@@ -24,7 +24,7 @@ class SculptureCommand extends Command {
     redo() {
         var t = this;
         this.listOfCoords.forEach(function (coord) {
-            t.pencilTool.changeCellFillstyle(coord.x, coord.y, t.newColor, false)
+            t.sculptureTool.changeCellFillstyle(coord.x, coord.y, t.newColor, false)
         })
         this.map.render();
         this.map.historyIndex++;
@@ -33,7 +33,7 @@ class SculptureCommand extends Command {
     undo() {
         var t = this;
         this.listOfCoords.forEach(function (coord) {
-            t.pencilTool.changeCellFillstyle(coord.x, coord.y, coord.oldC, false)
+            t.sculptureTool.changeCellFillstyle(coord.x, coord.y, coord.oldC, false)
         })
         this.map.render();
         this.map.historyIndex--;
