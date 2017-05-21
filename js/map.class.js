@@ -121,6 +121,14 @@ class Cell {
             }
         }
 
+        getFillstyle(x,y){
+            if(this.isCell(x,y)){
+                return this.getCell(x,y).fillStyle;
+            } else {
+                return this.fillStyle;
+            }
+        }
+
         changeCellFillstyle(x,y, fillStyle, render){
             var cell = this.getCell(x, y);
             cell.fillStyle = fillStyle;

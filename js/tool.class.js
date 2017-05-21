@@ -235,44 +235,44 @@ class SculptureTool extends Tool {
     }
     onMouseDown(evt){
         if(!super.onClick(evt)){
-          var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-          var pos = this.evtToCoordinates(evt);
-          pos.x = Math.floor(pos.x);
-          pos.y = Math.floor(pos.y);
-          pos.which = evt.which;
-          var t = this;
-          if(this.positions.length > 0 && this.latest.which != evt.which){
-            this.positions = [];
-          }else{
-            this.latest.which = evt.which;
-
-            this.positions.push(pos);
-            if(evt.shiftKey){
-              if(this.positions.length == 2){
-                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-                line.forEach(function(pos){
-                  t.changeCellFillstyle(pos.x, pos.y, fillStyle, false);
-                });
-                this.positions.splice(0,1);
-                this.wasShifted = true;
-              }
-            }else{
-              if(this.wasShifted){
-                this.wasShifted = false;
-              }
-              if(this.positions.length == 2){
-                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-                line.forEach(function(pos){
-                  t.changeCellFillstyle(pos.x, pos.y, fillStyle, false);
-                });
+            var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+            var pos = this.evtToCoordinates(evt);
+            pos.x = Math.floor(pos.x);
+            pos.y = Math.floor(pos.y);
+            pos.which = evt.which;
+            var t = this;
+            if(this.positions.length > 0 && this.latest.which != evt.which){
                 this.positions = [];
-              }
+            }else{
+                this.latest.which = evt.which;
+
+                this.positions.push(pos);
+                if(evt.shiftKey){
+                    if(this.positions.length == 2){
+                        var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                        line.forEach(function(pos){
+                            t.changeCellFillstyle(pos.x, pos.y, fillStyle, false);
+                        });
+                        this.positions.splice(0,1);
+                        this.wasShifted = true;
+                    }
+                }else{
+                    if(this.wasShifted){
+                        this.wasShifted = false;
+                    }
+                    if(this.positions.length == 2){
+                        var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                        line.forEach(function(pos){
+                            t.changeCellFillstyle(pos.x, pos.y, fillStyle, false);
+                        });
+                        this.positions = [];
+                    }
+                }
             }
-          }
-          this.previewPositions.forEach(function(p){
-            t.map.removeCell(p.x, p.y, -1);
-          });
-          this.map.render();
+            this.previewPositions.forEach(function(p){
+                t.map.removeCell(p.x, p.y, -1);
+            });
+            this.map.render();
         }
     }
 
@@ -330,89 +330,70 @@ class PencilTool extends SculptureTool {
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
         this.latest = { x: 0, y: 0 };
+        this.shiftdown = false;
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
         this.drawn = []
-        this.oldColor;
         this.newColor;
     }
-
     onMouseDown(evt){
-        var pos = this.evtToCoordinates(evt);
-        pos.x = Math.floor(pos.x);
-        pos.y = Math.floor(pos.y);
-        this.oldColor = this.map.getCell(pos.x, pos.y).fillStyle;
+        this.mouseDown = true;
         if (evt.which == 1) {
             this.newColor = this.foregroundColor;
-        } else if (evt.which == 3) {
+        } else {
             this.newColor = this.backgroundColor;
         }
-        if (this.changeCellFillstyle(pos.x, pos.y, this.newColor)){
-            this.drawn.push({x: pos.x, y: pos.y, oldC: this.oldColor})
-            if (this.map.isCell(pos.x, pos.y)){
-                //this.map.newCommand(new PencilClickCommand(this, pos.x, pos.y, oldColor, newColor), this.toolbar);
-                this.map.getCell(pos.x, pos.y).render()
-            }
-        }
-        if(evt.which == 1 || evt.which == 3){
-            this.mouseDown = true;
-        }
     }
-
     onMouseUp(evt){
         this.mouseDown = false;
-        var drawnlength = this.drawn.length
-        if(drawnlength > 1 && this.drawn[0].x == this.drawn[1].x && this.drawn[0].y == this.drawn[1].y){
-            this.drawn.splice(1,1)
+        if (this.drawn.length != 0){
+            this.map.newCommand(new SculptureCommand(this, this.drawn, this.newColor), this.toolbar);
         }
-        this.map.newCommand(new SculptureCommand(this, this.drawn, this.newColor), this.toolbar);
         this.drawn = []
     }
-
-    onMouseMove(evt) {
-        if (!evt.shiftKey) {
+    onMouseMove(evt){
+        if(evt.shiftKey && this.shiftdown == false){
+            this.shiftdown = true;
+        } else if(!evt.shiftKey && this.shiftdown == true){
+            this.shiftdown = false;
             this.shifted.reset();
         }
-        if ((evt.which == 1 || evt.which == 3) && this.mouseDown) {
+        if(this.mouseDown){
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
             pos.y = Math.floor(pos.y);
-            if (evt.shiftKey) {
-                if (this.shifted.direction == "vertical") {
-                    var oldC = this.map.getCell(pos.x, pos.y).fillStyle
-                    this.changeCellFillstyle(pos.x, this.shifted.y, this.newColor);
-                    this.drawn.push({x: pos.x, y: this.shifted.y, oldC: oldC})
-                    this.map.getCell(pos.x, this.shifted.y).render();
-                } else if (this.shifted.direction == "horizontal") {
-                    var oldC = this.map.getCell(pos.x, pos.y).fillStyle
-                    this.changeCellFillstyle(this.shifted.x, pos.y, this.newColor);
-                    this.drawn.push({x: this.shifted.x,y: pos.y, oldC: oldC})
-                    this.map.getCell(this.shifted.x, pos.y).render();
-                } else {
-                    if (this.shifted.x || this.shifted.y) {
-                        if (Math.abs(this.shifted.x - pos.x) >= 1) {
-                            this.shifted.direction = "vertical";
-                        } else if (Math.abs(this.shifted.y - pos.y) >= 1) {
-                            this.shifted.direction = "horizontal";
-                        }
-                    } else {
-                        this.shifted.x = pos.x;
-                        this.shifted.y = pos.y;
+            if(!this.shiftdown){
+                this.checkCoord(pos.x, pos.y)
+            }else {
+                if (!this.shifted.x || !this.shifted.y){
+                    this.shifted.x = pos.x;
+                    this.shifted.y = pos.y;
+                }
+                if (!this.shifted.direction){
+                    if (pos.x != this.shifted.x){
+                        this.shifted.direction = "h"
+                    } else if (pos.y != this.shifted.y){
+                        this.shifted.direction = "v"
                     }
                 }
-            } else {
-                if (this.shifted.direction) {
-                    this.shifted.reset();
+                if (this.shifted.direction == "h"){
+                    this.checkCoord(pos.x, this.shifted.y);
+                } else if (this.shifted.direction == "v"){
+                    this.checkCoord(this.shifted.x, pos.y);
                 }
-                if (this.latest.x != pos.x || this.latest.y != pos.y) {
-                    this.latest.x = pos.x;
-                    this.latest.y = pos.y;
-                    var oldC = this.map.getCell(pos.x, pos.y).fillStyle
-                    if (this.changeCellFillstyle(pos.x, pos.y, this.newColor)){
-                        this.drawn.push({x: pos.x, y: pos.y, oldC: oldC})
-                        if (this.map.isCell(pos.x, pos.y)){
-                            this.map.getCell(pos.x, pos.y).render()
-                        }
-                    }
+            }
+        }
+    }
+
+    checkCoord(x, y){
+        if (this.latest.x != x || this.latest.y != y) {
+            this.latest.x = x;
+            this.latest.y = y;
+            var oldColor = this.map.getFillstyle(x,y);
+            if (this.newColor != oldColor){
+                this.changeCellFillstyle(x, y, this.newColor);
+                this.drawn.push({x: x, y: y, oldC: oldColor})
+                if (this.map.isCell(x, y)){
+                    this.map.getCell(x, y).render()
                 }
             }
         }
