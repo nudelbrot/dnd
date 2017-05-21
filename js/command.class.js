@@ -12,20 +12,19 @@ class Command {
     }
 }
 
-class PencilCommand extends Command {
-    constructor(pencilTool, listOfCoords, prevColor, newColor) {
+class SculptureCommand extends Command {
+    constructor(pencilTool, listOfCoords, newColor) {
         super()
         this.pencilTool = pencilTool
         this.map = pencilTool.map
         this.listOfCoords = listOfCoords
-        this.prevColor = prevColor
         this.newColor = newColor
         //console.debug(this)
     }
     redo() {
         var t = this;
         this.listOfCoords.forEach(function (coord) {
-            t.pencilTool.changeCellFillstyle(coord[0], coord[1], t.newColor, false)
+            t.pencilTool.changeCellFillstyle(coord.x, coord.y, t.newColor, false)
         })
         this.map.render();
         this.map.historyIndex++;
@@ -34,7 +33,7 @@ class PencilCommand extends Command {
     undo() {
         var t = this;
         this.listOfCoords.forEach(function (coord) {
-            t.pencilTool.changeCellFillstyle(coord[0], coord[1], t.prevColor, false)
+            t.pencilTool.changeCellFillstyle(coord.x, coord.y, coord.oldC, false)
         })
         this.map.render();
         this.map.historyIndex--;

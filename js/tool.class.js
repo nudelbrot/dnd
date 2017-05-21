@@ -183,11 +183,15 @@ class SculptureTool extends Tool {
 
     changeCellFillstyle(x, y, fillStyle, render=true){
         if (this.map.fillStyle == fillStyle){
-            this.map.removeCell(x, y);
-            if (render){
-                this.map.render();
+            if (this.map.isCell(x,y)){
+                this.map.removeCell(x, y);
+                if (render){
+                    this.map.render();
+                }
+                return true;
+            } else {
+                return false;
             }
-            return true;
         } else if (this.fillStyle != this.map.getCell(x,y).fillStyle) {
             this.map.changeCellFillstyle(x, y, fillStyle, render)
             return true;
@@ -214,7 +218,7 @@ class SculptureTool extends Tool {
                 }
                 return true;
             }
-          return false;
+            return false;
         }
 
     }
@@ -231,39 +235,39 @@ class SculptureTool extends Tool {
     }
     onMouseDown(evt){
         if(!super.onClick(evt)){
-          var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-          var pos = this.evtToCoordinates(evt);
-          pos.x = Math.floor(pos.x);
-          pos.y = Math.floor(pos.y);
-          pos.which = evt.which;
-          this.latest.which = evt.which;
+            var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+            var pos = this.evtToCoordinates(evt);
+            pos.x = Math.floor(pos.x);
+            pos.y = Math.floor(pos.y);
+            pos.which = evt.which;
+            this.latest.which = evt.which;
 
-          var t = this;
-          this.positions.push(pos);
-          if(evt.shiftKey){
-            if(this.positions.length == 2){
-              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-              line.forEach(function(pos){
-                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-              });
-              this.positions.splice(0,1);
-              this.wasShifted = true;
+            var t = this;
+            this.positions.push(pos);
+            if(evt.shiftKey){
+                if(this.positions.length == 2){
+                    var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                    line.forEach(function(pos){
+                        t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+                    });
+                    this.positions.splice(0,1);
+                    this.wasShifted = true;
+                }
+            }else{
+                if(this.wasShifted){
+                    this.wasShifted = false;
+                }
+                if(this.positions.length == 2){
+                    var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                    line.forEach(function(pos){
+                        t.changeCellFillstyle(pos.x, pos.y, fillStyle);
+                    });
+                    this.positions = [];
+                }
             }
-          }else{
-            if(this.wasShifted){
-              this.wasShifted = false;
-            }
-            if(this.positions.length == 2){
-              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-              line.forEach(function(pos){
-                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-              });
-              this.positions = [];
-            }
-          }
-          this.previewPositions.forEach(function(p){
-            t.map.removeCell(p.x, p.y, -1);
-          });
+            this.previewPositions.forEach(function(p){
+                t.map.removeCell(p.x, p.y, -1);
+            });
         }
     }
 
@@ -338,7 +342,7 @@ class PencilTool extends SculptureTool {
             this.newColor = this.backgroundColor;
         }
         if (this.changeCellFillstyle(pos.x, pos.y, this.newColor)){
-            this.drawn.push([pos.x, pos.y])
+            this.drawn.push({x: pos.x, y: pos.y, oldC: this.oldColor})
             if (this.map.isCell(pos.x, pos.y)){
                 //this.map.newCommand(new PencilClickCommand(this, pos.x, pos.y, oldColor, newColor), this.toolbar);
                 this.map.getCell(pos.x, pos.y).render()
@@ -351,7 +355,11 @@ class PencilTool extends SculptureTool {
 
     onMouseUp(evt){
         this.mouseDown = false;
-        this.map.newCommand(new PencilCommand(this, this.drawn, this.oldColor, this.newColor), this.toolbar);
+        var drawnlength = this.drawn.length
+        if(drawnlength > 1 && this.drawn[0].x == this.drawn[1].x && this.drawn[0].y == this.drawn[1].y){
+            this.drawn.splice(1,1)
+        }
+        this.map.newCommand(new SculptureCommand(this, this.drawn, this.newColor), this.toolbar);
         this.drawn = []
     }
 
@@ -365,12 +373,14 @@ class PencilTool extends SculptureTool {
             pos.y = Math.floor(pos.y);
             if (evt.shiftKey) {
                 if (this.shifted.direction == "vertical") {
+                    var oldC = this.map.getCell(pos.x, pos.y).fillStyle
                     this.changeCellFillstyle(pos.x, this.shifted.y, this.newColor);
-                    this.drawn.push([pos.x, this.shifted.y])
+                    this.drawn.push({x: pos.x, y: this.shifted.y, oldC: oldC})
                     this.map.getCell(pos.x, this.shifted.y).render();
                 } else if (this.shifted.direction == "horizontal") {
+                    var oldC = this.map.getCell(pos.x, pos.y).fillStyle
                     this.changeCellFillstyle(this.shifted.x, pos.y, this.newColor);
-                    this.drawn.push([this.shifted.x, pos.y])
+                    this.drawn.push({x: this.shifted.x,y: pos.y, oldC: oldC})
                     this.map.getCell(this.shifted.x, pos.y).render();
                 } else {
                     if (this.shifted.x || this.shifted.y) {
@@ -391,8 +401,9 @@ class PencilTool extends SculptureTool {
                 if (this.latest.x != pos.x || this.latest.y != pos.y) {
                     this.latest.x = pos.x;
                     this.latest.y = pos.y;
+                    var oldC = this.map.getCell(pos.x, pos.y).fillStyle
                     if (this.changeCellFillstyle(pos.x, pos.y, this.newColor)){
-                        this.drawn.push([pos.x, pos.y])
+                        this.drawn.push({x: pos.x, y: pos.y, oldC: oldC})
                         if (this.map.isCell(pos.x, pos.y)){
                             this.map.getCell(pos.x, pos.y).render()
                         }
