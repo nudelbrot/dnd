@@ -265,6 +265,12 @@ class PencilTool extends SculptureTool {
     }
     onMouseUp(evt) {
         this.mouseDown = false;
+        if (this.drawn.length == 0){
+            var pos = this.evtToCoordinates(evt);
+            pos.x = Math.floor(pos.x);
+            pos.y = Math.floor(pos.y);
+            this.checkCoord(pos.x, pos.y)
+        }
         this.commitSculptureCommand();
     }
     onMouseMove(evt) {
