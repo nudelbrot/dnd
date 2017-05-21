@@ -2,7 +2,7 @@
 see https://nudelbrot.github.io/dnd
 
 ## Hotkeys ##
-lm == left mouse button
+lm == left mouse button,
 rm == right mouse button
 
 ### Navigation ###
@@ -40,4 +40,6 @@ rm == right mouse button
 |---|---|
 | lm-click | fill area with foreground color |
 | rm-click | fill area with background color |
+| lm-click on background | change the color of the background to foreground color |
+| rm-click on background | change the color of the background to background color |
 
