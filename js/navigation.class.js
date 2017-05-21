@@ -11,18 +11,19 @@ class MiniMap{
         this.div.css("position", "relative");
         this.div.append(this.canvas);
         this.target.append(this.div);
+        this.scale = 5
 
         //this.canvas.style.width='100%';
         //this.canvas.style.height='100%';
         //this.canvas.width  = this.canvas.offsetWidth;
         //this.canvas.height = this.canvas.offsetHeight;
         var ctx = this.canvas.getContext("2d");
-        ctx.canvas.width = 256;
-        ctx.canvas.height = 256;
+        ctx.canvas.width = this.map.canvas.width / this.scale;
+        ctx.canvas.height = this.map.canvas.height / this.scale;
 
         this.viewport = $("<div></div>");
-        this.viewport.css("width", this.map.canvas.width / this.map.cellWidth);
-        this.viewport.css("height", this.map.canvas.height / this.map.cellHeight);
+        this.viewport.css("width", this.map.canvas.width / (this.scale*4));
+        this.viewport.css("height", this.map.canvas.height / (this.scale*4));
         this.viewport.css("background", "rgba(20,20,20, 0.2)");
         this.viewport.css("float", "right");
         this.viewport.css("position", "absolute");
