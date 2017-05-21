@@ -146,7 +146,6 @@ class Cell {
                 ctx.canvas.width = this.width() * this.cellWidth; 
                 ctx.canvas.height = this.height() * this.cellHeight; 
                 this.canvas.getContext("2d").translate(this.translation.x,this.translation.y);
-                console.debug(this.width(),this.canvas.width, "resized");
             }
 
             ctx.globalCompositeOperation = "copy";

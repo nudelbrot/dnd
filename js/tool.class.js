@@ -236,34 +236,39 @@ class SculptureTool extends Tool {
           pos.x = Math.floor(pos.x);
           pos.y = Math.floor(pos.y);
           pos.which = evt.which;
-          this.latest.which = evt.which;
-
           var t = this;
-          this.positions.push(pos);
-          if(evt.shiftKey){
-            if(this.positions.length == 2){
-              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-              line.forEach(function(pos){
-                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-              });
-              this.positions.splice(0,1);
-              this.wasShifted = true;
-            }
+          if(this.positions.length > 0 && this.latest.which != evt.which){
+            this.positions = [];
           }else{
-            if(this.wasShifted){
-              this.wasShifted = false;
-            }
-            if(this.positions.length == 2){
-              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-              line.forEach(function(pos){
-                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-              });
-              this.positions = [];
+            this.latest.which = evt.which;
+
+            this.positions.push(pos);
+            if(evt.shiftKey){
+              if(this.positions.length == 2){
+                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                line.forEach(function(pos){
+                  t.changeCellFillstyle(pos.x, pos.y, fillStyle, false);
+                });
+                this.positions.splice(0,1);
+                this.wasShifted = true;
+              }
+            }else{
+              if(this.wasShifted){
+                this.wasShifted = false;
+              }
+              if(this.positions.length == 2){
+                var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
+                line.forEach(function(pos){
+                  t.changeCellFillstyle(pos.x, pos.y, fillStyle, false);
+                });
+                this.positions = [];
+              }
             }
           }
           this.previewPositions.forEach(function(p){
             t.map.removeCell(p.x, p.y, -1);
           });
+          this.map.render();
         }
     }
 
