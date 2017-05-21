@@ -121,6 +121,14 @@ class Cell {
             }
         }
 
+        getFillstyle(x,y){
+            if(this.isCell(x,y)){
+                return this.getCell(x,y).fillStyle;
+            } else {
+                return this.fillStyle;
+            }
+        }
+
         changeCellFillstyle(x,y, fillStyle, render){
             var cell = this.getCell(x, y);
             cell.fillStyle = fillStyle;
@@ -146,7 +154,6 @@ class Cell {
                 ctx.canvas.width = this.width() * this.cellWidth; 
                 ctx.canvas.height = this.height() * this.cellHeight; 
                 this.canvas.getContext("2d").translate(this.translation.x,this.translation.y);
-                console.debug(this.width(),this.canvas.width, "resized");
             }
 
             ctx.globalCompositeOperation = "copy";
