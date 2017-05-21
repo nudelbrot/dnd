@@ -132,11 +132,15 @@ class SculptureTool extends Tool {
         return false;
     }
 
-    commitCommand() {
+    commitSculptureCommand() {
         if (this.drawn.length != 0) {
             this.map.newCommand(new SculptureCommand(this, this.drawn, this.newColor), this.toolbar);
         }
         this.drawn = []
+    }
+
+    commitChangeBackgroundCommand(oldMapColor){
+        this.map.newCommand(new ChangeBackgroundCommand(this.map, oldMapColor, this.newColor), this.toolbar);
     }
 }
 class PathTool extends SculptureTool {
@@ -189,7 +193,7 @@ class PathTool extends SculptureTool {
             this.previewPositions.forEach(function (p) {
                 t.map.removeCell(p.x, p.y, -1);
             });
-            this.commitCommand();
+            this.commitSculptureCommand();
             this.map.render();
         }
     }
@@ -261,7 +265,7 @@ class PencilTool extends SculptureTool {
     }
     onMouseUp(evt) {
         this.mouseDown = false;
-        this.commitCommand();
+        this.commitSculptureCommand();
     }
     onMouseMove(evt) {
         if (evt.shiftKey && this.shiftdown == false) {
@@ -351,17 +355,16 @@ class BucketTool extends SculptureTool {
         this.ymin = Math.min.apply(null, yOfCurrentCells)
         this.ymax = Math.max.apply(null, yOfCurrentCells)
         //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
-        var newColor;
         if (evt.type == "click") {
-            newColor = this.foregroundColor;
+            this.newColor = this.foregroundColor;
         } else {
-            newColor = this.backgroundColor;
+            this.newColor = this.backgroundColor;
         }
         //console.debug("x/y: " + x + "/" + y + "\nxMin/xMax: " + this.xmin + "/" + this.xmax + "\nyMin/yMax: " + this.ymin + "/" + this.ymax)
         if (!this.outside(x, y)) {
             if (this.map.isCell(x, y)) {
                 this.old = this.map.getCell(x, y).fillStyle;
-                if (newColor == this.old) {
+                if (this.newColor == this.old) {
                     return;
                 }
             } else {
@@ -373,17 +376,23 @@ class BucketTool extends SculptureTool {
             this.floodFill(x, y);
             //console.debug("Ended flooding: ", this.cellsToFill);
             if (!this.abort) {
-                var newColorIsBackgroundColor = (newColor == this.map.fillStyle)
+                var newColorIsBackgroundColor = (this.newColor == this.map.fillStyle)
                 for (var i = 0; i < this.cellsToFill.length; i++) {
-                    this.changeCellFillstyle(this.cellsToFill[i][0], this.cellsToFill[i][1], newColor, false);
+                    var x = this.cellsToFill[i][0]
+                    var y = this.cellsToFill[i][1]
+                    this.changeCellFillstyle(x, y, this.newColor, false);
+                    this.drawn.push({x: x, y: y, oldC: this.old})
                 }
                 this.map.render();
+                this.commitSculptureCommand()
             } else {
-                this.map.fillStyle = newColor;
+                this.commitChangeBackgroundCommand(this.map.fillStyle);
+                this.map.fillStyle = this.newColor;
                 this.map.render();
             }
         } else {
-            this.map.fillStyle = newColor;
+            this.commitChangeBackgroundCommand(this.map.fillStyle);
+            this.map.fillStyle = this.newColor;
             this.map.render();
         }
         //console.debug("ABORT: " + this.abort);
