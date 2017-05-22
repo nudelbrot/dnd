@@ -34,7 +34,7 @@ class Cell {
     }
 
     class RectMap {
-        constructor(target, cellWidth=24, cellHeight=24) {
+        constructor(target, cellWidth=32, cellHeight=32) {
             this.canvas = $("<canvas></canvas>")[0];
             var t = this;
             $("html").css("overflow", "hidden");

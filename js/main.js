@@ -14,7 +14,7 @@ class Dnd {
     }
     finishedLoading() {
         this.prepArrayEqualsAndContains();
-        this.map = new RectMap(target, 24, 24);
+        this.map = new RectMap(target);
         this.toolbar = new Toolbar($(".collapse"), this.map);
         this.navigation = new Navigation(target, this.map);
 

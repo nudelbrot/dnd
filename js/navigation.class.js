@@ -17,7 +17,7 @@ class MiniMap{
         this.viewport = $("<div></div>");
         this.viewport.css("width", this.map.canvas.width / (this.scale*4));
         this.viewport.css("height", this.map.canvas.height / (this.scale*4));
-        this.viewport.css("background", "rgba(100,100,100, 0.2)");
+        this.viewport.css("background", "rgba(100,100,100, 0.1)");
         this.viewport.css("float", "right");
         this.viewport.css("position", "absolute");
         this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
