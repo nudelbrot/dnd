@@ -469,6 +469,7 @@ class Toolbar {
         this.addColorpickers();
         this.addTools();
         this.addUndoRedoButtons();
+        this.addPixelSizeSlider();
         this.form.children().css('padding-right', '10px');
         this.customCursor = false;
         this.backgroundColorPicker.colorpicker("setValue", this.map.fillStyle);
@@ -605,7 +606,24 @@ class Toolbar {
         } else {
             this.buttonRedo.removeClass("disabled")
         }
+    }
 
+    addPixelSizeSlider(){
+        this.slider = $('<div id="slider"></div>');
+        this.slider.css("width", "100px");
+        this.slider.css("display", "inline-block");
+        this.slider.css("padding-left", "10px");
+        this.slider.slider({
+            range: "min",
+            value: 32,
+            min: 8,
+            max: 56,
+        });
+        var t = this
+        this.slider.on("slide", function(event, ui){
+            t.map.changeCellSize(ui.value);
+        });
+        this.form.append(this.slider);
     }
 
     setActiveTool(tool) {

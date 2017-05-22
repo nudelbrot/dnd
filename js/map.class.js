@@ -38,8 +38,8 @@ class Cell {
             this.canvas = $("<canvas></canvas>")[0];
             var t = this;
             $("html").css("overflow", "hidden");
-            this.width = function(){return Math.ceil($(target).width()/cellWidth);}
-            this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/cellHeight);}
+            this.width = function(){return Math.ceil($(target).width()/t.cellWidth);}
+            this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/t.cellHeight);}
 
             var ctx = this.canvas.getContext("2d");
             this.cellWidth = cellWidth;
@@ -55,6 +55,12 @@ class Cell {
             this.panel = $("<div></div>");
             this.panel.append(this.canvas);
             target.append(this.panel[0]);
+            this.render();
+        }
+
+        changeCellSize(newSize){
+            this.cellWidth = newSize;
+            this.cellHeight = newSize;
             this.render();
         }
 
