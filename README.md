@@ -36,7 +36,7 @@ rm == right mouse button
 | rm-click + shift | add point. if a point already exist, draw a bg-colored line afterwards remove the previous point|
 
 ### Bucket Tool ###
-| trigger(/alt-trigger)  | action |
+| trigger  | action |
 |---|---|
 | lm-click | fill area with foreground color |
 | rm-click | fill area with background color |
@@ -44,4 +44,6 @@ rm == right mouse button
 | rm-click on background | change the color of the background to background color |
 
 ### Re-render Map ###
+| trigger | action |
+|---|---|
 | r | re-render map if anything seems broken |
