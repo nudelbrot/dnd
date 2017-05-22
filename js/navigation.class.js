@@ -49,8 +49,6 @@ class MiniMap{
         this.map.on("render", function(){t.render();});
 
     }
-
-
         render(){
             var ctx = this.canvas.getContext("2d");
             ctx.globalCompositeOperation = "copy";
@@ -81,7 +79,11 @@ class MiniMap{
         for(var i = 0; i < 10; ++i){
             this.jumppoints.push({x: 0, y:0});
         }
+        this.prepareListener();
 
+    }
+
+    prepareListener(){
         var t = this;
         this.map.on("touchmove", function(evt){evt.which=1; t.onMouseMove(evt);});
         this.map.on("touchstart", function(evt){evt.which=1; t.onMouseDown(evt);});
@@ -89,14 +91,24 @@ class MiniMap{
         this.map.on("mousemove", function(evt){t.onMouseMove(evt);});
         this.map.on("mousedown", function(evt){t.onMouseDown(evt);});
         this.map.on("mouseup", function(evt){t.onMouseUp(evt);});
-        this.map.on("mousewheel", function(evt){t.onMouseWheel(evt);});
+        if (this.map.canvas.addEventListener) {
+          // IE9, Chrome, Safari, Opera
+          this.map.canvas.addEventListener("mousewheel", function(evt){t.onMouseWheel(evt);}, false);
+          // Firefox
+          this.map.canvas.addEventListener("DOMMouseScroll", function(evt){t.onMouseWheel(evt);}, false);
+        }
+        // IE 6/7/8
+        else this.map.canvas.attachEvent("onmousewheel", function(evt){t.onMouseWheel(evt);});
+
         $("body").on("keydown", function(evt){
             t.onKeyDown(evt);
         });
     }
 
     onMouseWheel(evt){
-        if(evt.originalEvent.deltaY > 0){
+      var evt = window.event || evt;
+      var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
+        if(delta < 0){
             if(evt.shiftKey){
                 this.translate(1, 0);
             }else{
