@@ -152,6 +152,7 @@ class MiniMap{
             this.map.scale("reset");
         }else if(evt.which == 27 || evt.which == 32){
             this.jump(-1);
+            //this.map.changeCellSize(32); // TODO
         }else if(evt.which == 192 || evt.which == 8){
             this.jump(9);
         }else if(evt.which >= 49 && evt.which <= 57){

@@ -4,15 +4,13 @@ class Cell {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.cellWidth = this.map.cellWidth;
-        this.cellHeight = this.map.cellHeight;
         this.fillStyle = this.map.fillStyle;
         this.strokeStyle = "#ffffff";
         this.lineWidth = 1;
         this.highlight = false;
         this.highlightStyle = "#ff0000"
     }
-    render(ctx, stroke=true, cellWidth=this.cellWidth, cellHeight=this.cellHeight){
+    render(ctx, stroke=true, cellWidth=this.map.cellWidth, cellHeight=this.map.cellHeight){
         if(!ctx){
             ctx = this.map.canvas.getContext("2d");
         }
@@ -59,9 +57,11 @@ class Cell {
         }
 
         changeCellSize(newSize){
+            var oldTranslation = {x: this.translation.x, y: this.translation.y};
+            this.translate(-oldTranslation.x, -oldTranslation.y)
             this.cellWidth = newSize;
             this.cellHeight = newSize;
-            this.render();
+            this.translate(oldTranslation.x, oldTranslation.y)
         }
 
         newCommand(command, toolbar){
