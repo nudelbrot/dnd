@@ -25,6 +25,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "bootstrap-colorpicker": "^2.5.1",
-    "bootstrap3-dialog": "bootstrap-dialog#^1.35.4"
+    "bootstrap3-dialog": "bootstrap-dialog#^1.35.4",
+    "jquery-mobile": "^1.4.5"
   }
 }

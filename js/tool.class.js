@@ -253,7 +253,7 @@ class PencilTool extends SculptureTool {
         this.cursor = { id: "edit", dx: 2, dy: 20 };
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
-        this.latest = { x: 0, y: 0 };
+        this.latest = { x: undefined, y: undefined, reset: function () { this.x = undefined; this.y = undefined } };
         this.shiftdown = false;
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
     }
@@ -268,12 +268,15 @@ class PencilTool extends SculptureTool {
     onMouseUp(evt) {
         this.mouseDown = false;
         if (this.drawn.length == 0){
+            console.debug("length equals 0")
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
             pos.y = Math.floor(pos.y);
+            console.debug(pos.x, pos.y)
             this.checkCoord(pos.x, pos.y)
         }
         this.commitSculptureCommand();
+        this.latest.reset();
     }
     onMouseMove(evt) {
         if (evt.shiftKey && this.shiftdown == false) {
@@ -347,7 +350,7 @@ class BucketTool extends SculptureTool {
         var pos = this.evtToCoordinates(evt);
         var x = Math.floor(pos.x)
         var y = Math.floor(pos.y)
-        this.listOfCurrentCells = this.map.getCurrentCells(x, y);
+        this.listOfCurrentCells = this.map.getCurrentCells();
         this.inListOfCurrentCells = this.map.isCell(x, y)
         this.coordsOfCurrentCells = this.listOfCurrentCells.map(function (obj) {
             return [obj.x, obj.y]
@@ -480,6 +483,9 @@ class Toolbar {
         this.map.on("mouseup", function (evt) { t.onMouseUp(evt); });
         this.map.on("mousedown", function (evt) { t.onMouseDown(evt); });
         this.map.on("mousemove", function (evt) { t.onMouseMove(evt); });
+        this.map.on("touchend", function (evt) {evt.which=1; t.onMouseUp(evt); });
+        this.map.on("touchstart", function (evt) {evt.which=1; t.onMouseDown(evt); });
+        this.map.on("touchmove", function (evt) {evt.which=1; console.debug(evt); t.onMouseMove(evt); });
     }
 
     addTools() {

@@ -61,12 +61,10 @@ class Cell {
         newCommand(command, toolbar){
             if (this.history.length > 0){
                 this.history = this.history.slice(0, this.historyIndex+1)
-                console.debug("slice from " + 0 + " to " + (this.historyIndex+1))
             }
             this.history.push(command)
             this.historyIndex++;
             toolbar.checkUndoAndRedoButton()
-            console.debug(this.history, " index: " + this.historyIndex);
         }
 
         getCell(x, y, z=0) {
@@ -103,8 +101,19 @@ class Cell {
             }
             return this.data[z][x][y];
         }
-        getCurrentCells(x, y, z = 0){//TODO: RENAME
-            var ret =  [].concat.apply([],this.data[z]).filter(function(obj){ return obj; });
+        getCurrentCells(z = 0){//TODO: RENAME... MORE LOOPS
+            var ret = [];
+            if(this.data[z]){
+              for(var row in this.data[z]){
+                if(!(this.data[z][row] instanceof Function)){
+                  for(var col in this.data[z][row]){
+                    if(!(this.data[z][row][col] instanceof Function)){
+                      ret.push(this.data[z][row][col]);
+                    }
+                  }
+                }
+              }
+            }
             return ret;
         }
 
