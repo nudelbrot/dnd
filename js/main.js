@@ -19,9 +19,9 @@ class Dnd {
         this.navigation = new Navigation(target, this.map);
 
         var t = this;
-        $(window).resize(function(e){
-          t.map.render();
-          t.navigation.onResize(e);
+        $(window).resize(function (e) {
+            t.map.render();
+            t.navigation.onResize(e);
         });
         $("#saveJSON").on("click", function (a, b) { t.map.toJson(a, b); });
         $("#exportPNG").on("click", function (a, b) { t.map.toPNG(); });
