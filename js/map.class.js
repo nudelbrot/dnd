@@ -101,13 +101,13 @@ class Cell {
             }
             return this.data[z][x][y];
         }
-        getCurrentCells(x, y, z = 0){//TODO: RENAME... MORE LOOPS
+        getCurrentCells(z = 0){//TODO: RENAME... MORE LOOPS
             var ret = [];
             if(this.data[z]){
               for(var row in this.data[z]){
-                if(typeof(this.data[z][row] == "object")){
+                if(!(this.data[z][row] instanceof Function)){
                   for(var col in this.data[z][row]){
-                    if(typeof(this.data[z][row][col] == "object")){
+                    if(!(this.data[z][row][col] instanceof Function)){
                       ret.push(this.data[z][row][col]);
                     }
                   }

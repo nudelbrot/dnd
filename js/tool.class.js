@@ -350,7 +350,7 @@ class BucketTool extends SculptureTool {
         var pos = this.evtToCoordinates(evt);
         var x = Math.floor(pos.x)
         var y = Math.floor(pos.y)
-        this.listOfCurrentCells = this.map.getCurrentCells(x, y);
+        this.listOfCurrentCells = this.map.getCurrentCells();
         this.inListOfCurrentCells = this.map.isCell(x, y)
         this.coordsOfCurrentCells = this.listOfCurrentCells.map(function (obj) {
             return [obj.x, obj.y]
