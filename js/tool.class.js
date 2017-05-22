@@ -411,11 +411,7 @@ class BucketTool extends SculptureTool {
     }
     outside(x, y) {
         //console.debug("x/y: " + x + "/" + y + "\nxMin/xMax: " + this.xmin + "/" + this.xmax + "\nyMin/yMax: " + this.ymin + "/" + this.ymax)
-        if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
-            return true;
-        } else {
-            return false;
-        }
+        return (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax)
     }
     floodFill(x, y) {
         //console.debug("flood: " + x + ", " + y)
