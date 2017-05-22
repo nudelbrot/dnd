@@ -6,7 +6,7 @@ class Tool {
         this.button = undefined;
         this.panel = $("<div class='panel panel-default toolSettings'></div>");
         this.panel.append($("<div class='panel-body'></div>"));
-        this.cursor = {id: "default", dx: 0, dy: 0};
+        this.cursor = { id: "default", dx: 0, dy: 0 };
     }
     onMouseMove(self, evt) {
     }
@@ -18,10 +18,10 @@ class Tool {
     }
 
     evtToCoordinates(evt) {
-        return { x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y) / this.map.cellHeight };
+        return { x: (evt.offsetX / this.map.cellWidth) - this.map.translation.x, y: (evt.offsetY / this.map.cellHeight)  - this.map.translation.y };
     }
 
-    enableCursor(){
+    enableCursor() {
         var canvas = $("<canvas></canvas>")[0];
         canvas.width = 24;
         canvas.height = 24;
@@ -29,14 +29,14 @@ class Tool {
         ctx.font = "26px Material Icons";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.moveTo(0,0);
+        ctx.moveTo(0, 0);
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(this.cursor.id, 12,12);
+        ctx.fillText(this.cursor.id, 12, 12);
         ctx.fillStyle = "#000000";
         ctx.font = "24px Material Icons";
-        ctx.fillText(this.cursor.id, 12,12);
+        ctx.fillText(this.cursor.id, 12, 12);
         var dataURL = canvas.toDataURL('image/png')
-        $(this.map.canvas).css('cursor', 'url('+dataURL+') ' + this.cursor.dx + ' ' + this.cursor.dy + ', auto');
+        $(this.map.canvas).css('cursor', 'url(' + dataURL + ') ' + this.cursor.dx + ' ' + this.cursor.dy + ', auto');
     }
 
 }
@@ -61,7 +61,7 @@ class MagicStickTool extends SelectionTool {
     constructor(toolbar) {
         super(toolbar);
         this.icon = "open_with";
-        this.cursor = {id: "open_with", dx: 10, dy: 10};
+        this.cursor = { id: "open_with", dx: 10, dy: 10 };
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.Stack = [];
         this.cellsToFill = [];
@@ -74,98 +74,6 @@ class MagicStickTool extends SelectionTool {
         this.ymin
         this.ymax
     }
-    onClick(evt) {
-        this.listOfCurrentlyHighlighted = this.listOfCurrentlyHighlighted.concat(this.cellsToFill)
-        console.debug("listOfCurrentlyHighlighted: ", this.listOfCurrentlyHighlighted)
-        var pos = this.evtToCoordinates(evt);
-        pos = [Math.floor(pos.x), Math.floor(pos.y)];
-        var coordString = pos[0] + "/" + pos[1]
-        this.listOfCurrentCells = Object.keys(this.map.data)
-        this.inListOfCurrentCells = $.inArray(coordString, this.listOfCurrentCells)
-        var xAndYofCurrentCells = this.listOfCurrentCells.map(function (obj) {
-            var coord = obj.split("/")
-            return [coord[0], coord[1]]
-        });
-        var xOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
-            return obj[0]
-        })
-        var yOfCurrentCells = xAndYofCurrentCells.map(function (obj) {
-            return obj[1]
-        })
-        this.xmin = Math.min.apply(null, xOfCurrentCells)
-        this.xmax = Math.max.apply(null, xOfCurrentCells)
-        this.ymin = Math.min.apply(null, yOfCurrentCells)
-        this.ymax = Math.max.apply(null, yOfCurrentCells)
-        var highlight;
-        //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
-        if (this.map.isCell(pos[0], pos[1])){
-            var cell = this.map.getCell(pos[0], pos[1]);
-            highlight = !cell.highlight;
-            this.old = this.map.getCell(pos[0], pos[1]).fillStyle;
-            this.Stack = [];
-            this.floodFill(pos[0], pos[1]);
-            console.debug("neu: ", this.cellsToFill)
-        } else {
-            highlight = false;
-            this.cellsToFill = this.listOfCurrentlyHighlighted;
-        }
-        for (var i = 0; i < this.cellsToFill.length; i++) {
-            var cellToFill = this.map.getCell(this.cellsToFill[i][0], this.cellsToFill[i][1]);
-            cellToFill.highlight = highlight;
-            cellToFill.render();
-        }
-        if (highlight == false) {
-            var t = this;
-            this.cellsToFill.map(function (obj) {
-                var index = t.listOfCurrentlyHighlighted.indexOf(obj);
-                if (index > -1) {
-                    t.listOfCurrentlyHighlighted.splice(index, 1);
-                }
-            })
-            this.cellsToFill = []
-        }
-    }
-    outside(x, y) {
-        if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    floodFill(x, y) {
-        this.fillPixel(x, y);
-        while (this.Stack.length > 0) {
-            this.toFill = this.Stack.pop();
-            this.fillPixel(this.toFill[0], this.toFill[1]);
-        }
-    }
-
-    fillPixel(x, y) {
-        if (!this.alreadyFilled(x, y)) this.fill(x, y);
-
-        if (!this.alreadyFilled(x, y - 1)) this.Stack.push([x, y - 1]);
-        if (!this.alreadyFilled(x + 1, y)) this.Stack.push([x + 1, y]);
-        if (!this.alreadyFilled(x, y + 1)) this.Stack.push([x, y + 1]);
-        if (!this.alreadyFilled(x - 1, y)) this.Stack.push([x - 1, y]);
-    }
-
-    fill(x, y) {
-        this.cellsToFill.push([x, y]);
-    }
-
-    alreadyFilled(x, y) {
-        if (!this.outside(x, y)) {
-            var coordString = x + "/" + y;
-            var cellsToFillStringArray = this.cellsToFill.map(function (obj) { return obj[0] + "/" + obj[1] });
-            if ($.inArray(coordString, this.listOfCurrentCells) != -1) {
-                return ((this.map.getCell(x, y).fillStyle != this.old) || $.inArray(coordString, cellsToFillStringArray) != -1);
-            } else {
-                return ($.inArray(coordString, cellsToFillStringArray) != -1 || this.inListOfCurrentCells != -1);
-            }
-        } else {
-            return true;
-        }
-    }
 }
 
 class SculptureTool extends Tool {
@@ -176,19 +84,26 @@ class SculptureTool extends Tool {
         this.foregroundColorPicker = foregroundColorPicker;
         this.backgroundColorPicker = backgroundColorPicker;
         this.latestColors = [];
+        this.drawn = []
+        this.newColor;
     }
+
     addSize() {
         var body = this.panel.find(".panel-body");
     }
 
-    changeCellFillstyle(x, y, fillStyle, render=true){
-        if (this.map.fillStyle == fillStyle){
-            this.map.removeCell(x, y);
-            if (render){
-                this.map.render();
+    changeCellFillstyle(x, y, fillStyle, render = true) {
+        if (this.map.fillStyle == fillStyle) {
+            if (this.map.isCell(x, y)) {
+                this.map.removeCell(x, y);
+                if (render) {
+                    this.map.render();
+                }
+                return true;
+            } else {
+                return false;
             }
-            return true;
-        } else if (this.fillStyle != this.map.getCell(x,y).fillStyle) {
+        } else if (this.fillStyle != this.map.getCell(x, y).fillStyle) {
             this.map.changeCellFillstyle(x, y, fillStyle, render)
             return true;
         } else {
@@ -196,93 +111,111 @@ class SculptureTool extends Tool {
         }
     }
 
-        onClick(evt){
-            if (evt.ctrlKey) {
-                var pos = this.evtToCoordinates(evt);
-                pos.x = Math.floor(pos.x);
-                pos.y = Math.floor(pos.y);
-                var picker = undefined;
-                if (evt.type == "click"){
-                    picker = this.foregroundColorPicker;
-                } else {
-                    picker = this.backgroundColorPicker;
-                }
-                if (this.map.isCell(pos.x, pos.y)){
-                    picker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
-                } else {
-                    picker.colorpicker("setValue", this.map.fillStyle);
-                }
-                return true;
+    onClick(evt) {
+        if (evt.ctrlKey) {
+            var pos = this.evtToCoordinates(evt);
+            pos.x = Math.floor(pos.x);
+            pos.y = Math.floor(pos.y);
+            var picker = undefined;
+            if (evt.type == "click") {
+                picker = this.foregroundColorPicker;
+            } else {
+                picker = this.backgroundColorPicker;
             }
-          return false;
+            if (this.map.isCell(pos.x, pos.y)) {
+                picker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
+            } else {
+                picker.colorpicker("setValue", this.map.fillStyle);
+            }
+            return true;
         }
-
+        return false;
     }
 
-    class PathTool extends SculptureTool {
-        constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
+    commitSculptureCommand() {
+        if (this.drawn.length != 0) {
+            this.map.newCommand(new SculptureCommand(this, this.drawn, this.newColor), this.toolbar);
+        }
+        this.drawn = []
+    }
+
+    commitChangeBackgroundCommand(oldMapColor){
+        if (this.newColor != oldMapColor){
+            this.map.newCommand(new ChangeBackgroundCommand(this.map, oldMapColor, this.newColor), this.toolbar);
+        }
+    }
+}
+class PathTool extends SculptureTool {
+    constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
         super(toolbar, foregroundColorPicker, backgroundColorPicker);
         this.icon = "linear_scale";
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.positions = [];
         this.wasShifted = false;
         this.previewPositions = [];
-        this.latest = {x:0, y:0};
+        this.latest = { x: 0, y: 0 };
     }
-    onMouseDown(evt){
-        if(!super.onClick(evt)){
-          var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
-          var pos = this.evtToCoordinates(evt);
-          pos.x = Math.floor(pos.x);
-          pos.y = Math.floor(pos.y);
-          pos.which = evt.which;
-          this.latest.which = evt.which;
-
-          var t = this;
-          this.positions.push(pos);
-          if(evt.shiftKey){
-            if(this.positions.length == 2){
-              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-              line.forEach(function(pos){
-                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-              });
-              this.positions.splice(0,1);
-              this.wasShifted = true;
+    onMouseDown(evt) {
+        if (!super.onClick(evt)) {
+            this.newColor = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+            var pos = this.evtToCoordinates(evt);
+            pos.x = Math.floor(pos.x);
+            pos.y = Math.floor(pos.y);
+            pos.which = evt.which;
+            var t = this;
+            if (this.positions.length > 0 && this.latest.which != evt.which) {
+                this.positions = [];
+            } else {
+                this.latest.which = evt.which;
+                this.positions.push(pos);
+                if (evt.shiftKey) {
+                    if (this.positions.length == 2) {
+                        var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, this.newColor);
+                        line.forEach(function (pos) {
+                            t.changeCellFillstyle(pos.x, pos.y, t.newColor, false);
+                        });
+                        this.drawn = line;
+                        this.positions.splice(0, 1);
+                        this.wasShifted = true;
+                    }
+                } else {
+                    if (this.wasShifted) {
+                        this.wasShifted = false;
+                    }
+                    if (this.positions.length == 2) {
+                        var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, this.newColor);
+                        line.forEach(function (pos) {
+                            t.changeCellFillstyle(pos.x, pos.y, t.newColor, false);
+                        });
+                        this.drawn = line;
+                        this.positions = [];
+                    }
+                }
             }
-          }else{
-            if(this.wasShifted){
-              this.wasShifted = false;
-            }
-            if(this.positions.length == 2){
-              var line = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, fillStyle);
-              line.forEach(function(pos){
-                t.changeCellFillstyle(pos.x, pos.y, fillStyle);
-              });
-              this.positions = [];
-            }
-          }
-          this.previewPositions.forEach(function(p){
-            t.map.removeCell(p.x, p.y, -1);
-          });
+            this.previewPositions.forEach(function (p) {
+                t.map.removeCell(p.x, p.y, -1);
+            });
+            this.commitSculptureCommand();
+            this.map.render();
         }
     }
 
-    onMouseMove(evt){
+    onMouseMove(evt) {
         var pos = this.evtToCoordinates(evt);
         pos.x = Math.floor(pos.x);
         pos.y = Math.floor(pos.y);
         var fillStyle = this.latest.which == 1 ? this.foregroundColor : this.backgroundColor;
-        if(this.positions.length > 0){
+        if (this.positions.length > 0) {
             if (this.latest.x != pos.x || this.latest.y != pos.y) {
                 var t = this;
-                this.previewPositions.forEach(function(p){
+                this.previewPositions.forEach(function (p) {
                     t.map.removeCell(p.x, p.y, -1);
                 });
                 this.previewPositions = [];
                 this.latest.x = pos.x;
                 this.latest.y = pos.y;
                 this.previewPositions = this.line(this.positions[0].x, this.positions[0].y, pos.x, pos.y);
-                this.previewPositions.forEach(function(p){
+                this.previewPositions.forEach(function (p) {
                     t.map.getCell(p.x, p.y, -1);
                     t.map.data[-1][p.x][p.y] = "#ff00ff";
 
@@ -292,19 +225,19 @@ class SculptureTool extends Tool {
         }
     }
 
-    line(x0, y0, x1, y1, fillStyle){
-        var dx =  Math.abs(x1-x0);
-        var sx = x0<x1 ? 1 : -1;
-        var dy = -Math.abs(y1-y0)
-        var sy = y0<y1 ? 1 : -1;
-        var err = dx+dy, e2;
+    line(x0, y0, x1, y1, fillStyle) {
+        var dx = Math.abs(x1 - x0);
+        var sx = x0 < x1 ? 1 : -1;
+        var dy = -Math.abs(y1 - y0)
+        var sy = y0 < y1 ? 1 : -1;
+        var err = dx + dy, e2;
         var i = 0;
 
         var line = [];
-        while(1 && i++ < 200){
-            line.push({x: x0, y: y0});
-            if (x0==x1 && y0==y1) break;
-            e2 = 2*err;
+        while (1 && i++ < 200) {
+            line.push({ x: x0, y: y0, oldC: this.map.getFillstyle(x0, y0) });
+            if (x0 == x1 && y0 == y1) break;
+            e2 = 2 * err;
             if (e2 > dy) { err += dy; x0 += sx; }
             if (e2 < dx) { err += dx; y0 += sy; }
         }
@@ -317,82 +250,78 @@ class PencilTool extends SculptureTool {
         super(toolbar, foregroundColorPicker, backgroundColorPicker);
         this.size = 1;
         this.icon = "edit"
-        this.cursor = {id: "edit", dx: 2, dy: 20};
+        this.cursor = { id: "edit", dx: 2, dy: 20 };
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
-        this.latest = { x: 0, y: 0 };
+        this.latest = { x: undefined, y: undefined, reset: function () { this.x = undefined; this.y = undefined } };
+        this.shiftdown = false;
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
     }
-
-    onMouseDown(evt){
-        var pos = this.evtToCoordinates(evt);
-        pos.x = Math.floor(pos.x);
-        pos.y = Math.floor(pos.y);
-        var oldColor = this.map.getCell(pos.x, pos.y).fillStyle;
-        var newColor;
+    onMouseDown(evt) {
+        this.mouseDown = true;
         if (evt.which == 1) {
-            newColor = this.foregroundColor;
-        }else {
-            newColor = this.backgroundColor;
-        }
-        if (this.changeCellFillstyle(pos.x, pos.y, newColor)){
-            if (this.map.isCell(pos.x, pos.y)){
-                this.map.newCommand(new PencilClickCommand(this, pos.x, pos.y, oldColor, newColor), this.toolbar);
-                this.map.getCell(pos.x, pos.y).render()
-            }
-        }
-        if(evt.which == 1 || evt.which == 3){
-            this.mouseDown = true;
+            this.newColor = this.foregroundColor;
+        } else {
+            this.newColor = this.backgroundColor;
         }
     }
-
-    onMouseUp(evt){
+    onMouseUp(evt) {
         this.mouseDown = false;
-    }
-
-    onMouseMove(evt) {
-        if (!evt.shiftKey) {
-            this.shifted.reset();
-        }
-        if ((evt.which == 1 || evt.which == 3) && this.mouseDown) {
-            var fillStyle = evt.which == 1 ? this.foregroundColor : this.backgroundColor;
+        if (this.drawn.length == 0){
+            console.debug("length equals 0")
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
             pos.y = Math.floor(pos.y);
-
-            if (evt.shiftKey) {
-                if (this.shifted.direction == "vertical") {
-                    this.changeCellFillstyle(pos.x, this.shifted.y, fillStyle);
-                    this.map.getCell(pos.x, this.shifted.y).render();
-                } else if (this.shifted.direction == "horizontal") {
-                    this.changeCellFillstyle(this.shifted.x, pos.y, fillStyle);
-                    this.map.getCell(this.shifted.x, pos.y).render();
-                } else {
-                    if (this.shifted.x || this.shifted.y) {
-                        if (Math.abs(this.shifted.x - pos.x) >= 1) {
-                            this.shifted.direction = "vertical";
-                        } else if (Math.abs(this.shifted.y - pos.y) >= 1) {
-                            this.shifted.direction = "horizontal";
-                        }
-                    } else {
-                        this.shifted.x = pos.x;
-                        this.shifted.y = pos.y;
-                    }
-                }
+            console.debug(pos.x, pos.y)
+            this.checkCoord(pos.x, pos.y)
+        }
+        this.commitSculptureCommand();
+        this.latest.reset();
+    }
+    onMouseMove(evt) {
+        if (evt.shiftKey && this.shiftdown == false) {
+            this.shiftdown = true;
+        } else if (!evt.shiftKey && this.shiftdown == true) {
+            this.shiftdown = false;
+            this.shifted.reset();
+        }
+        if (this.mouseDown) {
+            var pos = this.evtToCoordinates(evt);
+            pos.x = Math.floor(pos.x);
+            pos.y = Math.floor(pos.y);
+            if (!this.shiftdown) {
+                this.checkCoord(pos.x, pos.y)
             } else {
-                if (this.shifted.direction) {
-                    this.shifted.reset();
+                if (!this.shifted.x || !this.shifted.y) {
+                    this.shifted.x = pos.x;
+                    this.shifted.y = pos.y;
                 }
-
-
-                if (this.latest.x != pos.x || this.latest.y != pos.y) {
-                    this.latest.x = pos.x;
-                    this.latest.y = pos.y;
-                    if (this.changeCellFillstyle(pos.x, pos.y, fillStyle)){
-                        if (this.map.isCell(pos.x, pos.y)){
-                            this.map.getCell(pos.x, pos.y).render()
-                        }
+                if (!this.shifted.direction) {
+                    if (pos.x != this.shifted.x) {
+                        this.shifted.direction = "h"
+                    } else if (pos.y != this.shifted.y) {
+                        this.shifted.direction = "v"
                     }
+                }
+                if (this.shifted.direction == "h") {
+                    this.checkCoord(pos.x, this.shifted.y);
+                } else if (this.shifted.direction == "v") {
+                    this.checkCoord(this.shifted.x, pos.y);
+                }
+            }
+        }
+    }
+
+    checkCoord(x, y) {
+        if (this.latest.x != x || this.latest.y != y) {
+            this.latest.x = x;
+            this.latest.y = y;
+            var oldColor = this.map.getFillstyle(x, y);
+            if (this.newColor != oldColor) {
+                this.changeCellFillstyle(x, y, this.newColor);
+                this.drawn.push({ x: x, y: y, oldC: oldColor })
+                if (this.map.isCell(x, y)) {
+                    this.map.getCell(x, y).render()
                 }
             }
         }
@@ -421,8 +350,8 @@ class BucketTool extends SculptureTool {
         var pos = this.evtToCoordinates(evt);
         var x = Math.floor(pos.x)
         var y = Math.floor(pos.y)
-        this.listOfCurrentCells = this.map.getCurrentCells(x, y);
-        this.inListOfCurrentCells = this.map.isCell(x,y)
+        this.listOfCurrentCells = this.map.getCurrentCells();
+        this.inListOfCurrentCells = this.map.isCell(x, y)
         this.coordsOfCurrentCells = this.listOfCurrentCells.map(function (obj) {
             return [obj.x, obj.y]
         });
@@ -437,17 +366,16 @@ class BucketTool extends SculptureTool {
         this.ymin = Math.min.apply(null, yOfCurrentCells)
         this.ymax = Math.max.apply(null, yOfCurrentCells)
         //console.debug("inListOfCurrentCells: " + this.inListOfCurrentCells)
-        var newColor;
         if (evt.type == "click") {
-            newColor = this.foregroundColor;
+            this.newColor = this.foregroundColor;
         } else {
-            newColor = this.backgroundColor;
+            this.newColor = this.backgroundColor;
         }
         //console.debug("x/y: " + x + "/" + y + "\nxMin/xMax: " + this.xmin + "/" + this.xmax + "\nyMin/yMax: " + this.ymin + "/" + this.ymax)
         if (!this.outside(x, y)) {
-            if (this.map.isCell(x,y)){
+            if (this.map.isCell(x, y)) {
                 this.old = this.map.getCell(x, y).fillStyle;
-                if (newColor == this.old){
+                if (this.newColor == this.old) {
                     return;
                 }
             } else {
@@ -458,18 +386,24 @@ class BucketTool extends SculptureTool {
             //console.debug("Start flooding")
             this.floodFill(x, y);
             //console.debug("Ended flooding: ", this.cellsToFill);
-            if (!this.abort){
-                var newColorIsBackgroundColor = (newColor == this.map.fillStyle)
+            if (!this.abort) {
+                var newColorIsBackgroundColor = (this.newColor == this.map.fillStyle)
                 for (var i = 0; i < this.cellsToFill.length; i++) {
-                    this.changeCellFillstyle(this.cellsToFill[i][0], this.cellsToFill[i][1], newColor, false);
+                    var x = this.cellsToFill[i][0]
+                    var y = this.cellsToFill[i][1]
+                    this.changeCellFillstyle(x, y, this.newColor, false);
+                    this.drawn.push({x: x, y: y, oldC: this.old})
                 }
                 this.map.render();
+                this.commitSculptureCommand()
             } else {
-                this.map.fillStyle = newColor;
+                this.commitChangeBackgroundCommand(this.map.fillStyle);
+                this.map.fillStyle = this.newColor;
                 this.map.render();
             }
         } else {
-            this.map.fillStyle = newColor;
+            this.commitChangeBackgroundCommand(this.map.fillStyle);
+            this.map.fillStyle = this.newColor;
             this.map.render();
         }
         //console.debug("ABORT: " + this.abort);
@@ -477,11 +411,7 @@ class BucketTool extends SculptureTool {
     }
     outside(x, y) {
         //console.debug("x/y: " + x + "/" + y + "\nxMin/xMax: " + this.xmin + "/" + this.xmax + "\nyMin/yMax: " + this.ymin + "/" + this.ymax)
-        if (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax) {
-            return true;
-        } else {
-            return false;
-        }
+        return (x < this.xmin || x > this.xmax || y < this.ymin || y > this.ymax)
     }
     floodFill(x, y) {
         //console.debug("flood: " + x + ", " + y)
@@ -507,8 +437,8 @@ class BucketTool extends SculptureTool {
 
     alreadyFilled(x, y) {
         //console.debug(x +"/"+ y + " innerhalb: " + !this.outside(x,y) + " KlickAufZelle: " + this.inListOfCurrentCells)
-        if ((!this.outside(x,y) || this.inListOfCurrentCells) && !this.abort){
-            var coord = [x,y];
+        if ((!this.outside(x, y) || this.inListOfCurrentCells) && !this.abort) {
+            var coord = [x, y];
             var inCellsToFill = this.cellsToFill.contains(coord);
             if (this.coordsOfCurrentCells.contains(coord)) {
                 return ((this.map.getCell(x, y).fillStyle != this.old) || inCellsToFill);
@@ -528,16 +458,17 @@ class Toolbar {
     constructor(target, map) {
         this.map = map;
         this.panel = $('<div id="tb_panel" class="text-center"></div>');
-        this.form = $("<div></div>", {"class": "navbar-form form-group"});
+        this.form = $("<div></div>", { "class": "navbar-form form-group" });
         this.panel.append(this.form[0]);
         this.foregroundColor = "#000000";
         this.backgroundColor = "#ffffff";
         this.addColorpickers();
         this.addTools();
         this.addUndoRedoButtons();
+        this.addPixelSizeSlider();
         this.form.children().css('padding-right', '10px');
         this.customCursor = false;
-        this.backgroundColorPicker.colorpicker("setValue", "#eeeeee");
+        this.backgroundColorPicker.colorpicker("setValue", this.map.fillStyle);
         target.append(this.panel[0]);
         var t = this;
         $(this.map.canvas).bind('contextmenu', function (e) {
@@ -549,6 +480,9 @@ class Toolbar {
         this.map.on("mouseup", function (evt) { t.onMouseUp(evt); });
         this.map.on("mousedown", function (evt) { t.onMouseDown(evt); });
         this.map.on("mousemove", function (evt) { t.onMouseMove(evt); });
+        this.map.on("touchend", function (evt) {evt.which=1; t.onMouseUp(evt); });
+        this.map.on("touchstart", function (evt) {evt.which=1; t.onMouseDown(evt); });
+        this.map.on("touchmove", function (evt) {evt.which=1; console.debug(evt); t.onMouseMove(evt); });
     }
 
     addTools() {
@@ -599,9 +533,10 @@ class Toolbar {
           + '<span class="material-icons">lens</span>'
           + '</button>');
         var t = this;
-        this.foregroundColorPicker.on("click", function(){ t.foregroundColorPicker.colorpicker("show"); });
-        this.backgroundColorPicker.on("click", function(){ t.backgroundColorPicker.colorpicker("show"); });
-        var defaultColors = { '#000000': '#000000',
+        this.foregroundColorPicker.on("click", function () { t.foregroundColorPicker.colorpicker("show"); });
+        this.backgroundColorPicker.on("click", function () { t.backgroundColorPicker.colorpicker("show"); });
+        var defaultColors = {
+            '#000000': '#000000',
             '#ffffff': '#ffffff',
             '#FF0000': '#FF0000',
             '#777777': '#777777',
@@ -609,8 +544,9 @@ class Toolbar {
             '#5cb85c': '#5cb85c',
             '#5bc0de': '#5bc0de',
             '#f0ad4e': '#f0ad4e',
-            '#d9534f': '#d9534f'};
-        this.foregroundColorPicker.colorpicker({"color": this.foregroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
+            '#d9534f': '#d9534f'
+        };
+        this.foregroundColorPicker.colorpicker({ "color": this.foregroundColor, "colorSelectors": defaultColors }).on("changeColor", function (e) {
             var color = t.foregroundColorPicker.colorpicker("getValue")
             t.foregroundColorPicker.find("span").css("color", color);
             t.foregroundColor = color;
@@ -618,7 +554,7 @@ class Toolbar {
             t.bucket.foregroundColor = color;
             t.path.foregroundColor = color;
         });
-        this.backgroundColorPicker.colorpicker({"color":this.backgroundColor, "colorSelectors":defaultColors}).on("changeColor", function (e) {
+        this.backgroundColorPicker.colorpicker({ "color": this.backgroundColor, "colorSelectors": defaultColors }).on("changeColor", function (e) {
             var color = t.backgroundColorPicker.colorpicker("getValue")
             t.backgroundColorPicker.find("span").css("color", color);
             t.backgroundColor = color;
@@ -632,39 +568,58 @@ class Toolbar {
         this.form.append(btnGrp);
     }
 
-    addUndoRedoButtons(){
+    addUndoRedoButtons() {
         this.buttonUndo = $('<button id="UndoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "undo" + '</span></button>');
         this.buttonRedo = $('<button id="RedoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "redo" + '</span></button>');
 
         var t = this;
-        this.buttonUndo.on("click", function(){
-            if(!t.buttonUndo.hasClass("disabled")) {
+        this.buttonUndo.on("click", function () {
+            if (!t.buttonUndo.hasClass("disabled")) {
                 t.map.history[t.map.historyIndex].undo()
                 t.checkUndoAndRedoButton()
-            } });
-        this.buttonRedo.on("click", function(){ 
-            if(!t.buttonRedo.hasClass("disabled")) {
+            }
+        });
+        this.buttonRedo.on("click", function () {
+            if (!t.buttonRedo.hasClass("disabled")) {
                 t.map.history[t.map.historyIndex + 1].redo()
                 t.checkUndoAndRedoButton()
-            } });
+            }
+        });
         var btnGrp = $("<div class='btn-group'></div>");
         btnGrp.append(this.buttonUndo);
         btnGrp.append(this.buttonRedo);
         this.form.prepend(btnGrp);
     }
 
-    checkUndoAndRedoButton(){
-        if(this.map.historyIndex == -1){
+    checkUndoAndRedoButton() {
+        if (this.map.historyIndex == -1) {
             this.buttonUndo.addClass("disabled")
         } else {
             this.buttonUndo.removeClass("disabled")
         }
-        if(this.map.historyIndex == this.map.history.length - 1){
+        if (this.map.historyIndex == this.map.history.length - 1) {
             this.buttonRedo.addClass("disabled")
         } else {
             this.buttonRedo.removeClass("disabled")
         }
+    }
 
+    addPixelSizeSlider(){
+        this.slider = $('<div id="slider"></div>');
+        this.slider.css("width", "100px");
+        this.slider.css("display", "inline-block");
+        this.slider.css("padding-left", "10px");
+        this.slider.slider({
+            range: "min",
+            value: 32,
+            min: 8,
+            max: 56,
+        });
+        var t = this
+        this.slider.on("slide", function(event, ui){
+            t.map.changeCellSize(ui.value);
+        });
+        this.form.append(this.slider);
     }
 
     setActiveTool(tool) {
@@ -673,9 +628,9 @@ class Toolbar {
         this.panel.find(".btn").removeClass("btn-primary");
         tool.button.addClass("btn-primary");
         this.panel.find(".panel-body").append(this.activeTool.panel);
-        if(this.customCursor){
+        if (this.customCursor) {
             this.activeTool.enableCursor();
-        }else{
+        } else {
             $("body").css('cursor', 'default');
         }
     }

@@ -4,15 +4,13 @@ class Cell {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.cellWidth = this.map.cellWidth;
-        this.cellHeight = this.map.cellHeight;
         this.fillStyle = this.map.fillStyle;
         this.strokeStyle = "#ffffff";
         this.lineWidth = 1;
         this.highlight = false;
         this.highlightStyle = "#ff0000"
     }
-    render(ctx, stroke=true, cellWidth=this.cellWidth, cellHeight=this.cellHeight){
+    render(ctx, stroke=true, cellWidth=this.map.cellWidth, cellHeight=this.map.cellHeight){
         if(!ctx){
             ctx = this.map.canvas.getContext("2d");
         }
@@ -34,20 +32,20 @@ class Cell {
     }
 
     class RectMap {
-        constructor(target, cellWidth=24, cellHeight=24) {
+        constructor(target, cellWidth=32, cellHeight=32) {
             this.canvas = $("<canvas></canvas>")[0];
             var t = this;
             $("html").css("overflow", "hidden");
-            this.width = function(){return Math.ceil($(target).width()/cellWidth);}
-            this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/cellHeight);}
+            this.width = function(){return Math.ceil($(target).width()/t.cellWidth);}
+            this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/t.cellHeight);}
 
             var ctx = this.canvas.getContext("2d");
             this.cellWidth = cellWidth;
             this.cellHeight = cellHeight;
-            this.translation = {x: 0, y: 0};
+            this.translation = {x: 0, y: 0, X: function(){return t.translation.x * t.cellWidth}, Y: function(){return t.translation.y * t.cellHeight}};
             this.scaleLevel = 1.0;
-            this.gridColor = "#aaaaaa";
-            this.fillStyle = "#eeeeee";
+            this.gridColor = "#dddddd";
+            this.fillStyle = "#fbfbfb";
 
             this.history = [];
             this.historyIndex = -1;
@@ -58,15 +56,21 @@ class Cell {
             this.render();
         }
 
+        changeCellSize(newSize){
+            var oldTranslation = {x: this.translation.x, y: this.translation.y};
+            this.translate(-oldTranslation.x, -oldTranslation.y)
+            this.cellWidth = newSize;
+            this.cellHeight = newSize;
+            this.translate(oldTranslation.x, oldTranslation.y)
+        }
+
         newCommand(command, toolbar){
             if (this.history.length > 0){
                 this.history = this.history.slice(0, this.historyIndex+1)
-                console.debug("slice from " + 0 + " to " + (this.historyIndex+1))
             }
             this.history.push(command)
             this.historyIndex++;
             toolbar.checkUndoAndRedoButton()
-            console.debug(this.history, " index: " + this.historyIndex);
         }
 
         getCell(x, y, z=0) {
@@ -103,8 +107,19 @@ class Cell {
             }
             return this.data[z][x][y];
         }
-        getCurrentCells(x, y, z = 0){//TODO: RENAME
-            var ret =  [].concat.apply([],this.data[z]).filter(function(obj){ return obj; });
+        getCurrentCells(z = 0){//TODO: RENAME... MORE LOOPS
+            var ret = [];
+            if(this.data[z]){
+              for(var row in this.data[z]){
+                if(!(this.data[z][row] instanceof Function)){
+                  for(var col in this.data[z][row]){
+                    if(!(this.data[z][row][col] instanceof Function)){
+                      ret.push(this.data[z][row][col]);
+                    }
+                  }
+                }
+              }
+            }
             return ret;
         }
 
@@ -118,6 +133,14 @@ class Cell {
             if(this.data[z] && this.data[z][x] && this.data[z][x][y]){
                 this.data[z][x][y] = undefined;
                 delete this.data[z][x][y];
+            }
+        }
+
+        getFillstyle(x,y){
+            if(this.isCell(x,y)){
+                return this.getCell(x,y).fillStyle;
+            } else {
+                return this.fillStyle;
             }
         }
 
@@ -145,8 +168,7 @@ class Cell {
                 this.canvas.height = this.height() * this.cellHeight; 
                 ctx.canvas.width = this.width() * this.cellWidth; 
                 ctx.canvas.height = this.height() * this.cellHeight; 
-                this.canvas.getContext("2d").translate(this.translation.x,this.translation.y);
-                console.debug(this.width(),this.canvas.width, "resized");
+                this.canvas.getContext("2d").translate(this.translation.X(), this.translation.Y());//TODO
             }
 
             ctx.globalCompositeOperation = "copy";
@@ -155,18 +177,17 @@ class Cell {
 
             ctx.globalCompositeOperation = "source-over";
             ctx.fillStyle = this.gridColor;
-            ctx.fillRect(-this.translation.x, -this.translation.y, this.width() * this.cellWidth, this.height() * this.cellHeight);
+            ctx.fillRect(-this.translation.X(), -this.translation.Y(), this.width() * this.cellWidth, this.height() * this.cellHeight);
             ctx.stroke();
             ctx.moveTo(0,0);
-            var d = {x: this.translation.x/this.cellWidth, y: this.translation.y/this.cellHeight}
             ctx.globalCompositeOperation = "source-over";
             var height = this.height();
             var width = this.width();
             var Z = Math.max(this.data.length, 1);
             for(var i = 0; i < height; ++i){
                 for(var j = 0; j < width; ++j){
-                    var x = j - d.x;
-                    var y =  i - d.y;
+                    var x = j - this.translation.x;
+                    var y =  i - this.translation.y;
                     ctx.fillStyle = this.fillStyle;
                     ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
                     for(var z = 0; z < Z; ++z){
@@ -250,10 +271,10 @@ class Cell {
             }
         }
 
-        translate(x, y){
+        translate(x, y, render = true){
             this.translation.x = this.translation.x + x;
             this.translation.y = this.translation.y + y;
-            this.canvas.getContext("2d").translate(x, y);
+            this.canvas.getContext("2d").translate(x * this.cellWidth, y * this.cellHeight);
             this.render();
         }
 

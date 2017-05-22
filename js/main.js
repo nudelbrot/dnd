@@ -14,11 +14,15 @@ class Dnd {
     }
     finishedLoading() {
         this.prepArrayEqualsAndContains();
-        this.map = new RectMap(target, 24, 24);
+        this.map = new RectMap(target);
         this.toolbar = new Toolbar($(".collapse"), this.map);
         this.navigation = new Navigation(target, this.map);
 
         var t = this;
+        $(window).resize(function (e) {
+            t.map.render();
+            t.navigation.onResize(e);
+        });
         $("#saveJSON").on("click", function (a, b) { t.map.toJson(a, b); });
         $("#exportPNG").on("click", function (a, b) { t.map.toPNG(); });
         $("#loadJSON").on("click", function (a, b) {

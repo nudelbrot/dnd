@@ -5,33 +5,24 @@ class MiniMap{
         this.navigation = navigation;
         this.div = $("<div></div>");
         this.canvas = $("<canvas id='minimap'></canvas>")[0];
-        this.canvas.width = width;
-        this.canvas.height = height;
-        $(this.canvas).css("background", "#ddd");
+        $(this.canvas).css("background", "#eeeeee");
         this.div.css("position", "relative");
         this.div.append(this.canvas);
         this.target.append(this.div);
-
-        //this.canvas.style.width='100%';
-        //this.canvas.style.height='100%';
-        //this.canvas.width  = this.canvas.offsetWidth;
-        //this.canvas.height = this.canvas.offsetHeight;
+        this.scale = 5
         var ctx = this.canvas.getContext("2d");
-        ctx.canvas.width = 256;
-        ctx.canvas.height = 256;
+        ctx.canvas.width = this.map.canvas.width / this.scale;
+        ctx.canvas.height = this.map.canvas.height / this.scale;
 
         this.viewport = $("<div></div>");
-        this.viewport.css("width", this.map.canvas.width / this.map.cellWidth);
-        this.viewport.css("height", this.map.canvas.height / this.map.cellHeight);
-        this.viewport.css("background", "rgba(20,20,20, 0.2)");
+        this.viewport.css("width", this.map.canvas.width / (this.scale*4));
+        this.viewport.css("height", this.map.canvas.height / (this.scale*4));
+        this.viewport.css("background", "rgba(100,100,100, 0.1)");
         this.viewport.css("float", "right");
         this.viewport.css("position", "absolute");
         this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
         this.viewport.css("top", this.canvas.height/2 - this.viewport.height()/2);
-        //this.viewport.offset({
-        //  left: $(this.canvas).offset().left + Math.floor(this.canvas.width/2) + Math.floor(this.viewport.width()/2 - 2),
-        //  top:  $(this.canvas).offset().top + Math.floor(this.canvas.height/2) + Math.floor(this.viewport.height()/2 - 2)
-        //});
+
         this.div.append(this.viewport[0]);
         var t = this;
         this.drag = false;
@@ -48,8 +39,6 @@ class MiniMap{
         this.map.on("render", function(){t.render();});
 
     }
-
-
         render(){
             var ctx = this.canvas.getContext("2d");
             ctx.globalCompositeOperation = "copy";
@@ -73,26 +62,43 @@ class MiniMap{
         this.map = map;
     
         this.panel = $("<div></div>");
-        this.panel.css({"position": "absolute", "float":"right", "right": "5px", "top": "65px"});
+        this.panel.css({"position": "absolute", "float":"right", "right": "10px", "bottom": "5px"});
         this.minimap = new MiniMap(this.panel, map, this);
         this.target.append(this.panel[0]);
         this.jumppoints = [];
         for(var i = 0; i < 10; ++i){
             this.jumppoints.push({x: 0, y:0});
         }
+        this.prepareListener();
 
+    }
+
+    prepareListener(){
         var t = this;
+        this.map.on("touchmove", function(evt){evt.which=1; t.onMouseMove(evt);});
+        this.map.on("touchstart", function(evt){evt.which=1; t.onMouseDown(evt);});
+        this.map.on("touchend", function(evt){evt.which=1; t.onMouseUp(evt);});
         this.map.on("mousemove", function(evt){t.onMouseMove(evt);});
         this.map.on("mousedown", function(evt){t.onMouseDown(evt);});
         this.map.on("mouseup", function(evt){t.onMouseUp(evt);});
-        this.map.on("mousewheel", function(evt){t.onMouseWheel(evt);});
+        if (this.map.canvas.addEventListener) {
+          // IE9, Chrome, Safari, Opera
+          this.map.canvas.addEventListener("mousewheel", function(evt){t.onMouseWheel(evt);}, false);
+          // Firefox
+          this.map.canvas.addEventListener("DOMMouseScroll", function(evt){t.onMouseWheel(evt);}, false);
+        }
+        // IE 6/7/8
+        else this.map.canvas.attachEvent("onmousewheel", function(evt){t.onMouseWheel(evt);});
+
         $("body").on("keydown", function(evt){
             t.onKeyDown(evt);
         });
     }
 
     onMouseWheel(evt){
-        if(evt.originalEvent.deltaY > 0){
+      var evt = window.event || evt;
+      var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
+        if(delta < 0){
             if(evt.shiftKey){
                 this.translate(1, 0);
             }else{
@@ -119,6 +125,16 @@ class MiniMap{
     onMouseMove(evt){
     }
 
+    onResize(evt){
+      this.minimap.viewport.css("width", this.map.canvas.width / (this.minimap.scale*4));
+      this.minimap.viewport.css("height", this.map.canvas.height / (this.minimap.scale*4));
+      this.minimap.viewport.css("left", this.minimap.canvas.width/2 - this.minimap.viewport.width()/2);
+      this.minimap.viewport.css("top", this.minimap.canvas.height/2 - this.minimap.viewport.height()/2);
+      this.minimap.canvas.width = this.minimap.map.canvas.width / this.minimap.scale;
+      this.minimap.canvas.height = this.minimap.map.canvas.height / this.minimap.scale;
+      this.minimap.render();
+    }
+
     onKeyDown(evt){
         if(evt.which == 87 || evt.which == 38){
             this.translate(0, 1);
@@ -136,6 +152,7 @@ class MiniMap{
             this.map.scale("reset");
         }else if(evt.which == 27 || evt.which == 32){
             this.jump(-1);
+            //this.map.changeCellSize(32); // TODO
         }else if(evt.which == 192 || evt.which == 8){
             this.jump(9);
         }else if(evt.which >= 49 && evt.which <= 57){
@@ -146,31 +163,33 @@ class MiniMap{
             }else{
                 this.jump(evt.which-49);
             }
+        }else if(evt.which == 82){
+          this.onResize();
         }else{
-            console.debug(evt.which);
+            //console.debug(evt.which);
         }
     }
 
     translate(x, y){
         this.minimap.canvas.getContext("2d").translate(x, y);
-        this.map.translate(x * this.map.cellWidth, y * this.map.cellHeight);
+        this.map.translate(x, y);
     }
 
     jump(i){
         if(i == 9){
-            var trans = {x: this.map.translation.x, y: this.map.translation.y};
-            this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x)/this.map.cellWidth, (-this.map.translation.y + this.jumppoints[i].y)/this.map.cellHeight);
+            var translation = {x: this.map.translation.x, y: this.map.translation.y};
+            this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x), (-this.map.translation.y + this.jumppoints[i].y));
             this.map.translate(-this.map.translation.x + this.jumppoints[i].x, -this.map.translation.y + this.jumppoints[i].y);
-            this.jumppoints[9].x = trans.x;
-            this.jumppoints[9].y = trans.y;
+            this.jumppoints[9].x = translation.x;
+            this.jumppoints[9].y = translation.y;
         }else{
             this.jumppoints[9].x = this.map.translation.x;
             this.jumppoints[9].y = this.map.translation.y;
             if(i == -1){
-                this.minimap.canvas.getContext("2d").translate(-this.map.translation.x/this.map.cellWidth, -this.map.translation.y/this.map.cellHeight);
+                this.minimap.canvas.getContext("2d").translate(-this.map.translation.x, -this.map.translation.y);
                 this.map.translate(-this.map.translation.x, -this.map.translation.y);
             }else{
-                this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x)/this.map.cellWidth, (-this.map.translation.y + this.jumppoints[i].y)/this.map.cellHeight);
+                this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x), (-this.map.translation.y + this.jumppoints[i].y));
                 this.map.translate(-this.map.translation.x + this.jumppoints[i].x, -this.map.translation.y + this.jumppoints[i].y);
             }
         }
