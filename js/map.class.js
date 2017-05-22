@@ -46,8 +46,8 @@ class Cell {
             this.cellHeight = cellHeight;
             this.translation = {x: 0, y: 0};
             this.scaleLevel = 1.0;
-            this.gridColor = "#aaaaaa";
-            this.fillStyle = "#fefefe";
+            this.gridColor = "#dddddd";
+            this.fillStyle = "#fbfbfb";
 
             this.history = [];
             this.historyIndex = -1;
