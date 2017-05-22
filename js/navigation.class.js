@@ -160,6 +160,8 @@ class MiniMap{
             }else{
                 this.jump(evt.which-49);
             }
+        }else if(evt.which == 82){
+          this.onResize();
         }else{
             console.debug(evt.which);
         }

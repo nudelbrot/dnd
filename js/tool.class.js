@@ -18,6 +18,7 @@ class Tool {
     }
 
     evtToCoordinates(evt) {
+        console.debug(evt);
         return { x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y) / this.map.cellHeight };
     }
 
@@ -480,6 +481,9 @@ class Toolbar {
         this.map.on("mouseup", function (evt) { t.onMouseUp(evt); });
         this.map.on("mousedown", function (evt) { t.onMouseDown(evt); });
         this.map.on("mousemove", function (evt) { t.onMouseMove(evt); });
+        this.map.on("touchend", function (evt) {evt.which=1; t.onMouseUp(evt); });
+        this.map.on("touchstart", function (evt) {evt.which=1; t.onMouseDown(evt); });
+        this.map.on("touchmove", function (evt) {evt.which=1; console.debug(evt); t.onMouseMove(evt); });
     }
 
     addTools() {
