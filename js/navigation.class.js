@@ -5,8 +5,8 @@ class MiniMap{
         this.navigation = navigation;
         this.div = $("<div></div>");
         this.canvas = $("<canvas id='minimap'></canvas>")[0];
-        this.canvas.width = width;
-        this.canvas.height = height;
+        //this.canvas.width = width;
+        //this.canvas.height = height;
         $(this.canvas).css("background", "#ddd");
         this.div.css("position", "relative");
         this.div.append(this.canvas);
@@ -83,6 +83,9 @@ class MiniMap{
         }
 
         var t = this;
+        this.map.on("touchmove", function(evt){evt.which=1; t.onMouseMove(evt);});
+        this.map.on("touchstart", function(evt){evt.which=1; t.onMouseDown(evt);});
+        this.map.on("touchend", function(evt){evt.which=1; t.onMouseUp(evt);});
         this.map.on("mousemove", function(evt){t.onMouseMove(evt);});
         this.map.on("mousedown", function(evt){t.onMouseDown(evt);});
         this.map.on("mouseup", function(evt){t.onMouseUp(evt);});
@@ -118,6 +121,16 @@ class MiniMap{
     }
 
     onMouseMove(evt){
+    }
+
+    onResize(evt){
+      this.minimap.viewport.css("width", this.map.canvas.width / (this.minimap.scale*4));
+      this.minimap.viewport.css("height", this.map.canvas.height / (this.minimap.scale*4));
+      this.minimap.viewport.css("left", this.minimap.canvas.width/2 - this.minimap.viewport.width()/2);
+      this.minimap.viewport.css("top", this.minimap.canvas.height/2 - this.minimap.viewport.height()/2);
+      this.minimap.canvas.width = this.minimap.map.canvas.width / this.minimap.scale;
+      this.minimap.canvas.height = this.minimap.map.canvas.height / this.minimap.scale;
+      this.minimap.render();
     }
 
     onKeyDown(evt){

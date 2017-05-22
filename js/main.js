@@ -21,6 +21,7 @@ class Dnd {
         var t = this;
         $(window).resize(function(e){
           t.map.render();
+          t.navigation.onResize(e);
         });
         $("#saveJSON").on("click", function (a, b) { t.map.toJson(a, b); });
         $("#exportPNG").on("click", function (a, b) { t.map.toPNG(); });
