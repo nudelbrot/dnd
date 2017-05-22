@@ -9,10 +9,10 @@ rm == right mouse button
 | trigger(/alt-trigger)  | action |
 |---|---|
 | esc(/space) | center viewport to (0/0) |
-| w(/up-arrow) | set viewport to (-0/-1) |
-| a(/left-arrow) | set viewport to (-1/-0) |
-| s(/down-arrow) | set viewport to (+0/-1) |
-| d(/right-arrow) | set viewport to (+1/+0) |
+| w(/up-arrow/scroll-up) | set viewport to (-0/-1) |
+| a(/left-arrow/shift + scroll-up) | set viewport to (-1/-0) |
+| s(/down-arrow/scroll-down) | set viewport to (+0/-1) |
+| d(/right-arrow/shift + scroll-down) | set viewport to (+1/+0) |
 | [1..10] + shift | setjumppoint [1..10] at current viewport |
 | [1..10] | set viewport to jumppoint [1..10] |
 | backspace(/^) | switch viewport to latest position before a jump |
@@ -36,10 +36,14 @@ rm == right mouse button
 | rm-click + shift | add point. if a point already exist, draw a bg-colored line afterwards remove the previous point|
 
 ### Bucket Tool ###
-| trigger(/alt-trigger)  | action |
+| trigger  | action |
 |---|---|
 | lm-click | fill area with foreground color |
 | rm-click | fill area with background color |
 | lm-click on background | change the color of the background to foreground color |
 | rm-click on background | change the color of the background to background color |
 
+### Re-render Map ###
+| trigger | action |
+|---|---|
+| r | re-render map if anything seems broken |
