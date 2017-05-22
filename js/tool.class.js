@@ -18,7 +18,6 @@ class Tool {
     }
 
     evtToCoordinates(evt) {
-        console.debug(evt);
         return { x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y) / this.map.cellHeight };
     }
 
