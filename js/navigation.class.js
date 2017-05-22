@@ -5,18 +5,11 @@ class MiniMap{
         this.navigation = navigation;
         this.div = $("<div></div>");
         this.canvas = $("<canvas id='minimap'></canvas>")[0];
-        //this.canvas.width = width;
-        //this.canvas.height = height;
-        $(this.canvas).css("background", "#ddd");
+        $(this.canvas).css("background", "#eeeeee");
         this.div.css("position", "relative");
         this.div.append(this.canvas);
         this.target.append(this.div);
         this.scale = 5
-
-        //this.canvas.style.width='100%';
-        //this.canvas.style.height='100%';
-        //this.canvas.width  = this.canvas.offsetWidth;
-        //this.canvas.height = this.canvas.offsetHeight;
         var ctx = this.canvas.getContext("2d");
         ctx.canvas.width = this.map.canvas.width / this.scale;
         ctx.canvas.height = this.map.canvas.height / this.scale;
@@ -24,15 +17,12 @@ class MiniMap{
         this.viewport = $("<div></div>");
         this.viewport.css("width", this.map.canvas.width / (this.scale*4));
         this.viewport.css("height", this.map.canvas.height / (this.scale*4));
-        this.viewport.css("background", "rgba(20,20,20, 0.2)");
+        this.viewport.css("background", "rgba(100,100,100, 0.2)");
         this.viewport.css("float", "right");
         this.viewport.css("position", "absolute");
         this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
         this.viewport.css("top", this.canvas.height/2 - this.viewport.height()/2);
-        //this.viewport.offset({
-        //  left: $(this.canvas).offset().left + Math.floor(this.canvas.width/2) + Math.floor(this.viewport.width()/2 - 2),
-        //  top:  $(this.canvas).offset().top + Math.floor(this.canvas.height/2) + Math.floor(this.viewport.height()/2 - 2)
-        //});
+
         this.div.append(this.viewport[0]);
         var t = this;
         this.drag = false;
