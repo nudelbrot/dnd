@@ -18,7 +18,7 @@ class Tool {
     }
 
     evtToCoordinates(evt) {
-        return { x: (evt.offsetX - this.map.translation.x) / this.map.cellWidth, y: (evt.offsetY - this.map.translation.y) / this.map.cellHeight };
+        return { x: (evt.offsetX / this.map.cellWidth) - this.map.translation.x, y: (evt.offsetY / this.map.cellHeight)  - this.map.translation.y };
     }
 
     enableCursor() {

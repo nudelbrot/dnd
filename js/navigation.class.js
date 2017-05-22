@@ -171,24 +171,24 @@ class MiniMap{
 
     translate(x, y){
         this.minimap.canvas.getContext("2d").translate(x, y);
-        this.map.translate(x * this.map.cellWidth, y * this.map.cellHeight);
+        this.map.translate(x, y);
     }
 
     jump(i){
         if(i == 9){
-            var trans = {x: this.map.translation.x, y: this.map.translation.y};
-            this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x)/this.map.cellWidth, (-this.map.translation.y + this.jumppoints[i].y)/this.map.cellHeight);
+            var translation = {x: this.map.translation.x, y: this.map.translation.y};
+            this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x), (-this.map.translation.y + this.jumppoints[i].y));
             this.map.translate(-this.map.translation.x + this.jumppoints[i].x, -this.map.translation.y + this.jumppoints[i].y);
-            this.jumppoints[9].x = trans.x;
-            this.jumppoints[9].y = trans.y;
+            this.jumppoints[9].x = translation.x;
+            this.jumppoints[9].y = translation.y;
         }else{
             this.jumppoints[9].x = this.map.translation.x;
             this.jumppoints[9].y = this.map.translation.y;
             if(i == -1){
-                this.minimap.canvas.getContext("2d").translate(-this.map.translation.x/this.map.cellWidth, -this.map.translation.y/this.map.cellHeight);
+                this.minimap.canvas.getContext("2d").translate(-this.map.translation.x, -this.map.translation.y);
                 this.map.translate(-this.map.translation.x, -this.map.translation.y);
             }else{
-                this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x)/this.map.cellWidth, (-this.map.translation.y + this.jumppoints[i].y)/this.map.cellHeight);
+                this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x), (-this.map.translation.y + this.jumppoints[i].y));
                 this.map.translate(-this.map.translation.x + this.jumppoints[i].x, -this.map.translation.y + this.jumppoints[i].y);
             }
         }

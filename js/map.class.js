@@ -44,7 +44,7 @@ class Cell {
             var ctx = this.canvas.getContext("2d");
             this.cellWidth = cellWidth;
             this.cellHeight = cellHeight;
-            this.translation = {x: 0, y: 0};
+            this.translation = {x: 0, y: 0, X: function(){return t.translation.x * t.cellWidth}, Y: function(){return t.translation.y * t.cellHeight}};
             this.scaleLevel = 1.0;
             this.gridColor = "#dddddd";
             this.fillStyle = "#fbfbfb";
@@ -168,7 +168,7 @@ class Cell {
                 this.canvas.height = this.height() * this.cellHeight; 
                 ctx.canvas.width = this.width() * this.cellWidth; 
                 ctx.canvas.height = this.height() * this.cellHeight; 
-                this.canvas.getContext("2d").translate(this.translation.x,this.translation.y);
+                this.canvas.getContext("2d").translate(this.translation.X(), this.translation.Y());//TODO
             }
 
             ctx.globalCompositeOperation = "copy";
@@ -177,18 +177,17 @@ class Cell {
 
             ctx.globalCompositeOperation = "source-over";
             ctx.fillStyle = this.gridColor;
-            ctx.fillRect(-this.translation.x, -this.translation.y, this.width() * this.cellWidth, this.height() * this.cellHeight);
+            ctx.fillRect(-this.translation.X(), -this.translation.Y(), this.width() * this.cellWidth, this.height() * this.cellHeight);
             ctx.stroke();
             ctx.moveTo(0,0);
-            var d = {x: this.translation.x/this.cellWidth, y: this.translation.y/this.cellHeight}
             ctx.globalCompositeOperation = "source-over";
             var height = this.height();
             var width = this.width();
             var Z = Math.max(this.data.length, 1);
             for(var i = 0; i < height; ++i){
                 for(var j = 0; j < width; ++j){
-                    var x = j - d.x;
-                    var y =  i - d.y;
+                    var x = j - this.translation.x;
+                    var y =  i - this.translation.y;
                     ctx.fillStyle = this.fillStyle;
                     ctx.fillRect(x * this.cellWidth + 1, y * this.cellHeight + 1, this.cellWidth - 1, this.cellHeight - 1);
                     for(var z = 0; z < Z; ++z){
@@ -272,10 +271,10 @@ class Cell {
             }
         }
 
-        translate(x, y){
+        translate(x, y, render = true){
             this.translation.x = this.translation.x + x;
             this.translation.y = this.translation.y + y;
-            this.canvas.getContext("2d").translate(x, y);
+            this.canvas.getContext("2d").translate(x * this.cellWidth, y * this.cellHeight);
             this.render();
         }
 
