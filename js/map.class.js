@@ -34,7 +34,7 @@ class Cell {
     }
 
     class RectMap {
-        constructor(target, cellWidth=24, cellHeight=24) {
+        constructor(target, cellWidth=32, cellHeight=32) {
             this.canvas = $("<canvas></canvas>")[0];
             var t = this;
             $("html").css("overflow", "hidden");
@@ -46,8 +46,8 @@ class Cell {
             this.cellHeight = cellHeight;
             this.translation = {x: 0, y: 0};
             this.scaleLevel = 1.0;
-            this.gridColor = "#aaaaaa";
-            this.fillStyle = "#eeeeee";
+            this.gridColor = "#dddddd";
+            this.fillStyle = "#fbfbfb";
 
             this.history = [];
             this.historyIndex = -1;

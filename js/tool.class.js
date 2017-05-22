@@ -471,7 +471,7 @@ class Toolbar {
         this.addUndoRedoButtons();
         this.form.children().css('padding-right', '10px');
         this.customCursor = false;
-        this.backgroundColorPicker.colorpicker("setValue", "#eeeeee");
+        this.backgroundColorPicker.colorpicker("setValue", this.map.fillStyle);
         target.append(this.panel[0]);
         var t = this;
         $(this.map.canvas).bind('contextmenu', function (e) {
