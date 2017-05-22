@@ -253,7 +253,7 @@ class PencilTool extends SculptureTool {
         this.cursor = { id: "edit", dx: 2, dy: 20 };
         this.button = $('<button type="button" class="btn  btn-default"> <span class="material-icons">' + this.icon + '</span></button>');
         this.mouseDown = false;
-        this.latest = { x: 0, y: 0 };
+        this.latest = { x: undefined, y: undefined, reset: function () { this.x = undefined; this.y = undefined } };
         this.shiftdown = false;
         this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
     }
@@ -268,12 +268,15 @@ class PencilTool extends SculptureTool {
     onMouseUp(evt) {
         this.mouseDown = false;
         if (this.drawn.length == 0){
+            console.debug("length equals 0")
             var pos = this.evtToCoordinates(evt);
             pos.x = Math.floor(pos.x);
             pos.y = Math.floor(pos.y);
+            console.debug(pos.x, pos.y)
             this.checkCoord(pos.x, pos.y)
         }
         this.commitSculptureCommand();
+        this.latest.reset();
     }
     onMouseMove(evt) {
         if (evt.shiftKey && this.shiftdown == false) {
