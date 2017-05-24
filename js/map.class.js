@@ -59,9 +59,13 @@ class Cell {
         changeCellSize(newSize){
             var oldTranslation = {x: this.translation.x, y: this.translation.y};
             this.translate(-oldTranslation.x, -oldTranslation.y)
+            var trans = {x: this.width(), y: this.height()};
             this.cellWidth = newSize;
             this.cellHeight = newSize;
-            this.translate(oldTranslation.x, oldTranslation.y)
+            trans.x = Math.floor((trans.x - this.width())/2);
+            trans.y = Math.floor((trans.y - this.height())/2);
+            this.translate(oldTranslation.x - trans.x, oldTranslation.y - trans.y);
+            $(this).trigger("resize", newSize);
         }
 
         newCommand(command, toolbar){
@@ -144,8 +148,8 @@ class Cell {
             }
         }
 
-        changeCellFillstyle(x,y, fillStyle, render){
-            var cell = this.getCell(x, y);
+        changeCellFillstyle(x, y, fillStyle, render, z=0){
+            var cell = this.getCell(x, y, z);
             cell.fillStyle = fillStyle;
             if (render){
                 cell.render()

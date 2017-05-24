@@ -5,7 +5,7 @@
 class Dnd {
     constructor(target) {
         this.target = target;
-        this.loaded = { command: false, map: false, navigation: false, toolbar: false };
+        this.loaded = { command: false, map: false, navigation: false, toolbar: false, pattern: false };
         var t = this;
         $.getScript("js/command.class.js", function () { t.gotScript("command"); });
         $.getScript("js/map.class.js", function () { t.gotScript("map"); });
@@ -64,10 +64,14 @@ class Dnd {
             this.loaded.navigation = true;
         } else if (lib == "tools") {
             this.loaded.toolbar = true;
+            var t = this;
+            $.getScript("js/pattern.class.js", function () { t.gotScript("pattern"); });
         } else if (lib == "menu") {
             this.loaded.menu = true;
+        } else if (lib == "pattern") {
+            this.loaded.pattern = true;
         }
-        if (this.loaded.map && this.loaded.navigation && this.loaded.toolbar) {
+        if (this.loaded.map && this.loaded.navigation && this.loaded.toolbar && this.loaded.pattern) {
             this.finishedLoading();
         }
     }

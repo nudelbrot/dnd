@@ -491,6 +491,7 @@ class Toolbar {
         this.pencil = new PencilTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
         this.bucket = new BucketTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
         this.path = new PathTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
+        this.patternPicker = new PatternPicker(this);
 
         var grp = $('<div class="btn-group" role="group"></div>');
 
@@ -499,6 +500,7 @@ class Toolbar {
         grp.append(this.pencil.button);
         grp.append(this.path.button);
         grp.append(this.bucket.button);
+        grp.append(this.patternPicker.container);
         var t = this;
 
         this.path.button.on("click", function () {
@@ -515,6 +517,9 @@ class Toolbar {
         });
         this.bucket.button.on("click", function () {
             t.setActiveTool(t.bucket);
+        });
+        this.patternPicker.button.on("click", function () {
+            t.setActiveTool(t.patternPicker);
         });
 
         this.activeTool = this.pencil;
@@ -553,6 +558,7 @@ class Toolbar {
             t.pencil.foregroundColor = color;
             t.bucket.foregroundColor = color;
             t.path.foregroundColor = color;
+            t.patternPicker.color = color;
         });
         this.backgroundColorPicker.colorpicker({ "color": this.backgroundColor, "colorSelectors": defaultColors }).on("changeColor", function (e) {
             var color = t.backgroundColorPicker.colorpicker("getValue")
@@ -561,7 +567,9 @@ class Toolbar {
             t.pencil.backgroundColor = color;
             t.bucket.backgroundColor = color;
             t.path.backgroundColor = color;
+            t.patternPicker.color = color;
         });
+
         var btnGrp = $("<div class='btn-group'></div>");
         btnGrp.append(this.foregroundColorPicker);
         btnGrp.append(this.backgroundColorPicker);
@@ -614,6 +622,7 @@ class Toolbar {
             value: 32,
             min: 8,
             max: 56,
+            step: 2
         });
         var t = this
         this.slider.on("slide", function(event, ui){

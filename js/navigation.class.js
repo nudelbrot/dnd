@@ -15,14 +15,9 @@ class MiniMap{
         ctx.canvas.height = this.map.canvas.height / this.scale;
 
         this.viewport = $("<div></div>");
-        this.viewport.css("width", this.map.canvas.width / (this.scale*4));
-        this.viewport.css("height", this.map.canvas.height / (this.scale*4));
         this.viewport.css("background", "rgba(100,100,100, 0.1)");
         this.viewport.css("float", "right");
         this.viewport.css("position", "absolute");
-        this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
-        this.viewport.css("top", this.canvas.height/2 - this.viewport.height()/2);
-
         this.div.append(this.viewport[0]);
         var t = this;
         this.drag = false;
@@ -37,6 +32,7 @@ class MiniMap{
               t.navigation.translate(t.canvas.width/2 - evt.offsetX, t.canvas.height/2 - evt.offsetY);
           });
         this.map.on("render", function(){t.render();});
+        $(this.map).on("resize", function(evt){t.onResize(evt);});
 
     }
         render(){
@@ -54,6 +50,22 @@ class MiniMap{
             });
             ctx.stroke();
         }
+
+        translate(x, y){
+          this.canvas.getContext("2d").translate(x, y);
+        }
+        
+        onResize(evt){
+          this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
+          this.viewport.css("top", this.canvas.height/2 - this.viewport.height()/2);
+
+          this.viewport.css("width", this.map.width());
+          this.viewport.css("height", this.map.height());
+
+          this.canvas.width = this.map.canvas.width / this.scale;
+          this.canvas.height = this.map.canvas.height / this.scale;
+          this.render();
+        }
     }
 
     class Navigation{
@@ -70,7 +82,7 @@ class MiniMap{
             this.jumppoints.push({x: 0, y:0});
         }
         this.prepareListener();
-
+        this.minimap.onResize();
     }
 
     prepareListener(){
@@ -126,13 +138,7 @@ class MiniMap{
     }
 
     onResize(evt){
-      this.minimap.viewport.css("width", this.map.canvas.width / (this.minimap.scale*4));
-      this.minimap.viewport.css("height", this.map.canvas.height / (this.minimap.scale*4));
-      this.minimap.viewport.css("left", this.minimap.canvas.width/2 - this.minimap.viewport.width()/2);
-      this.minimap.viewport.css("top", this.minimap.canvas.height/2 - this.minimap.viewport.height()/2);
-      this.minimap.canvas.width = this.minimap.map.canvas.width / this.minimap.scale;
-      this.minimap.canvas.height = this.minimap.map.canvas.height / this.minimap.scale;
-      this.minimap.render();
+      this.minimap.onResize(evt);
     }
 
     onKeyDown(evt){
@@ -171,7 +177,7 @@ class MiniMap{
     }
 
     translate(x, y){
-        this.minimap.canvas.getContext("2d").translate(x, y);
+        this.minimap.translate(x, y);
         this.map.translate(x, y);
     }
 
