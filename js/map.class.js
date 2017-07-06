@@ -249,7 +249,7 @@ class RectMap {
 
     var currentCells = this.getCurrentCells();
     currentCells.forEach(function(cell){
-      if(!(cell instanceof Function) && cell.x && cell.y){
+      if(!(cell instanceof Function)){
         viewport.minX = Math.min(viewport.minX, cell.x);
         viewport.maxX = Math.max(viewport.maxX, cell.x);
         viewport.minY = Math.min(viewport.minY, cell.y);
