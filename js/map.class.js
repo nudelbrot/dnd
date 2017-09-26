@@ -269,9 +269,8 @@ class RectMap {
     ctx.stroke();
     var url = canvas[0].toDataURL("image/png");
     var anchor = $("#exportPNG")[0];
-    window.open(url, "_blank");
-    //anchor.setAttribute("href", url)
-    //anchor.setAttribute("download", "map.png")
+    anchor.setAttribute("href", url)
+    anchor.setAttribute("download", "map.png")
 
   }
 
