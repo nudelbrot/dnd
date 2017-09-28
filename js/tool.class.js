@@ -133,6 +133,7 @@ class SculptureTool extends Tool {
     }
 
     commitSculptureCommand() {
+      console.debug(this.drawn);
         if (this.drawn.length != 0) {
             this.map.newCommand(new SculptureCommand(this, this.drawn, this.newColor), this.toolbar);
         }
@@ -154,6 +155,12 @@ class PathTool extends SculptureTool {
         this.wasShifted = false;
         this.previewPositions = [];
         this.latest = { x: 0, y: 0 };
+        this.info = $("<div></div>");
+        this.info.css("float", "right");
+        this.info.css("position", "absolute");
+        this.info.css("bottom", "0px");
+        this.info.css("left", "0px");
+        $("body").append(this.info);
     }
     onMouseDown(evt) {
         if (!super.onClick(evt)) {
@@ -195,6 +202,7 @@ class PathTool extends SculptureTool {
             this.previewPositions.forEach(function (p) {
                 t.map.removeCell(p.x, p.y, -1);
             });
+            this.info.html("");
             this.commitSculptureCommand();
             this.map.render();
         }
@@ -220,6 +228,7 @@ class PathTool extends SculptureTool {
                     t.map.data[-1][p.x][p.y] = "#ff00ff";
 
                 });
+                this.info.html("length: " + this.previewPositions.length);
                 this.map.render();
             }
         }

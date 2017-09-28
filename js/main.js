@@ -71,7 +71,7 @@ class Dnd {
         } else if (lib == "pattern") {
             this.loaded.pattern = true;
         }
-        if (this.loaded.map && this.loaded.navigation && this.loaded.toolbar && this.loaded.pattern) {
+        if (this.loaded.command && this.loaded.map && this.loaded.navigation && this.loaded.toolbar && this.loaded.pattern) {
             this.finishedLoading();
         }
     }

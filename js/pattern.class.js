@@ -5,7 +5,10 @@ class Pattern {
     this.cached = undefined;
   }
   getPattern(){
-    return this.cached? this.cached : this.render();
+    if(!this.cached){
+      this.cached = this.render();
+    }
+    return this.cached;
   }
   render(){}
 }
@@ -16,23 +19,26 @@ class RectPattern extends Pattern{
   }
 
   render(color = "rgba(255,255,255,0)", width=64, height=64){
+    super.render();
     var ctx = this.canvas[0].getContext("2d");
     ctx.canvas.width = width;
     ctx.canvas.height = height;
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = "#ffffff";
+    ctx.strokeStyle = "#aaaaaa";
     ctx.beginPath();
     for(var i = 1; i < 10; ++i){
       ctx.moveTo(0, i* height/10.0);
       ctx.lineTo(width, i * height/10.0);
     }
     ctx.stroke();
-    var img = new Image(width, height);
-    img.src = this.canvas[0].toDataURL();
-    //window.open(img.src,'_blank');
-    this.cached = ctx.createPattern(img, "no-repeat");
+    //var img = new Image(width, height);
+    //img.src = this.canvas[0].toDataURL();
+    this.cached = ctx.createPattern(this.canvas[0], "repeat");
     return this.cached;
+  }
+  getPattern(){
+    return super.getPattern();
   }
 }
 
@@ -57,22 +63,28 @@ class PatternPicker extends SculptureTool{
   onMouseDown(evt) {
     this.mouseDown = true;
     if (evt.which == 1) {
+      var pos = this.evtToCoordinates(evt);
+      pos.x = Math.floor(pos.x);
+      pos.y = Math.floor(pos.y);
+      this.drawn = [{"x": pos.x, "y": pos.y, "oldC": "#000000"}];
       this.newColor = this.selectedPattern.getPattern();
     }
     this.commitSculptureCommand();
-    console.debug(this.map.data);
+    this.map.getCell(pos.x, pos.y).fillStyle = this.newColor;
+    this.map.getCell(pos.x, pos.y).render();
+    console.debug(this.map.getCell(pos.x, pos.y));
   } 
   onClick(evt){}
   onMouseUp(evt){}
   onMouseMove(evt){}
 
   changeCellFillstyle(x, y, fillStyle, render = true) {
-      if (this.map.isCell(x, y, z) && this.map.fillStyle == fillStyle) {
-        this.map.removeCell(x, y);
-        if (render) {
-          this.map.render();
-        }
-        return true;
+    if (this.map.isCell(x, y, z) && this.map.fillStyle == fillStyle) {
+      this.map.removeCell(x, y);
+      if (render) {
+        this.map.render();
+      }
+      return true;
     } else if (this.fillStyle != this.map.getCell(x, y).fillStyle) {
       this.map.changeCellFillstyle(x, y, fillStyle, render)
       return true;
