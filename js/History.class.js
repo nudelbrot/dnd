@@ -1,6 +1,6 @@
-class nCommand {
-  act(){}
-  revert(){}
+class Command {
+  redo(){}
+  undo(){}
 }
 
 class History {
@@ -11,7 +11,7 @@ class History {
 
   forward(){
     if(this.pointer < this.stack.length){
-      this.stack[this.pointer].act();
+      this.stack[this.pointer].redo();
       this.pointer++;
     }
   }
@@ -19,7 +19,7 @@ class History {
   backward(){
     if(this.pointer > 0){
       this.pointer--;
-      this.stack[this.pointer].revert();
+      this.stack[this.pointer].undo();
     }
   }
 
@@ -30,9 +30,9 @@ class History {
       }
       this.stack.push(command);
       this.pointer++;
-      command.act();
+      command.redo();
     } else {
-      throw new Error("given command not inherits nCommand");
+      throw new Error("given command not inherits from Command");
     }
   }
 }
