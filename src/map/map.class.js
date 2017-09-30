@@ -1,4 +1,7 @@
-class RectMap extends History{
+import {History} from "./History.class";
+import {Cell} from "./Cell.class";
+
+export class RectMap extends History{
   constructor(target, cellWidth=32, cellHeight=32) {
     super();
     this.canvas = $("<canvas></canvas>")[0];
@@ -14,8 +17,6 @@ class RectMap extends History{
     this.scaleLevel = 1.0;
     this.gridColor = "#dddddd";
     this.fillStyle = "#fbfbfb";
-    this.history = [];
-    this.historyIndex = -1;
     this.data = [];
     this.panel = $("<div></div>");
     this.panel.append(this.canvas);
@@ -32,11 +33,7 @@ class RectMap extends History{
   }
 
   newCommand(command, toolbar){
-    if (this.history.length > 0){
-      this.history = this.history.slice(0, this.historyIndex+1);
-    }
-    this.history.push(command);
-    this.historyIndex++;
+    this.doCommand(command);
     toolbar.checkUndoAndRedoButton();
   }
 

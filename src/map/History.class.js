@@ -1,4 +1,4 @@
-class Command {
+export class Command {
   redo(){
         throw new Error("Abstract method!");
   }
@@ -7,7 +7,7 @@ class Command {
   }
 }
 
-class History {
+export class History {
   constructor(){
     this.stack = [];
     this.pointer = 0;
@@ -27,8 +27,16 @@ class History {
     }
   }
 
+  undoable(){
+    return this.pointer > 0;
+  }
+
+  redoable(){
+    return this.pointer < this.stack.length;
+  }
+
   doCommand(command){
-    if(command instanceof nCommand){
+    if(command instanceof Command){
       if(this.pointer < this.stack.length){
         this.stack.splice(this.pointer, this.stack.length);
       }

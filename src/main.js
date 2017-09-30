@@ -1,3 +1,7 @@
+import {RectMap} from "./map/map.class";
+import {Navigation} from "./map/navigation.class";
+import {Toolbar} from "./tools/Toolbar.class";
+
 class Dnd {
   constructor(target) {
     this.target = target;
@@ -98,3 +102,4 @@ class Dnd {
     };
   }
 }
+$(()=> new Dnd($("#target")));

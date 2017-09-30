@@ -1,4 +1,4 @@
-class Cell {
+export class Cell {
   constructor(map, x, y, z){
     this.map = map;
     this.x = x;

@@ -1,6 +1,7 @@
 module.exports = function(grunt) {
 
-  require("load-grunt-tasks")(grunt);
+  //require("load-grunt-tasks")(grunt);
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
@@ -51,18 +52,42 @@ module.exports = function(grunt) {
           'dist/<%= pkg.name %>.js': 'dist/<%= pkg.name %>.js'
         }
       }
+    },
+    "browserify": {
+      development: {
+        "transform": ["babelify"],
+        src: 'src/**/*.js',
+        dest: 'dist/<%= pkg.name %>.js',
+        options: {
+          browserifyOptions: { debug: true },
+          transform: [["babelify", { "presets": ["env"] }]],
+          watch: true,
+          keepAlive: true,
+        }
+      },
+      production: {
+        src: 'src/**/*.js',
+        dest: 'dist/<%= pkg.name %>.js',
+        options: {
+          browserifyOptions: { debug: false },
+          transform: [["babelify", { "presets": ["env"] }]],
+          plugin: [
+            ["minifyify", { map: false }]
+          ]
+        }
+      }
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-qunit');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-browserify');
 
   grunt.registerTask('test', ['jshint', 'qunit']);
 
-  grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'babel', 'uglify']);
+  grunt.registerTask("default", ["browserify:development"]);
+  grunt.registerTask("release", ["jshint", "qunit", "browserify:production"]);
+  //grunt.registerTask('default', ['jshint', 'qunit',  'browserify', 'babel','concat', 'uglify']);
   //grunt.registerTask('default', ['jshint', 'qunit', 'concat']);
 
 };

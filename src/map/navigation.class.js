@@ -1,0 +1,197 @@
+class MiniMap{
+  constructor(target, map, navigation, width=128, height=128){
+    this.target = target;
+    this.map = map;
+    this.navigation = navigation;
+    this.div = $("<div></div>");
+    this.canvas = $("<canvas id='minimap'></canvas>")[0];
+    $(this.canvas).css("background", "#eeeeee");
+    this.div.css("position", "relative");
+    this.div.append(this.canvas);
+    this.target.append(this.div);
+    this.scale = 5;
+    var ctx = this.canvas.getContext("2d");
+    ctx.canvas.width = this.map.canvas.width / this.scale;
+    ctx.canvas.height = this.map.canvas.height / this.scale;
+
+    this.viewport = $("<div></div>");
+    this.viewport.css("width", this.map.canvas.width / (this.scale*4));
+    this.viewport.css("height", this.map.canvas.height / (this.scale*4));
+    this.viewport.css("background", "rgba(100,100,100, 0.1)");
+    this.viewport.css("float", "right");
+    this.viewport.css("position", "absolute");
+    this.viewport.css("left", this.canvas.width/2 - this.viewport.width()/2);
+    this.viewport.css("top", this.canvas.height/2 - this.viewport.height()/2);
+
+    this.div.append(this.viewport[0]);
+    var t = this;
+    this.drag = false;
+    $(this.canvas).on("mousedown", function(evt){t.drag = true;});
+    $(this.canvas).on("mouseup", function(evt){t.drag = false;});
+    this.viewport.on("click", 
+      function(evt){ 
+        t.navigation.translate(t.viewport.width()/2 - evt.offsetX, t.viewport.height()/2 - evt.offsetY);
+      });
+    $(this.canvas).on("click", 
+      function(evt){ 
+        t.navigation.translate(t.canvas.width/2 - evt.offsetX, t.canvas.height/2 - evt.offsetY);
+      });
+    this.map.on("render", function(){t.render();});
+
+  }
+  render(){
+    var ctx = this.canvas.getContext("2d");
+    ctx.globalCompositeOperation = "copy";
+    ctx.rect(0,0,0,0);
+    ctx.stroke();
+    ctx.globalCompositeOperation = "source-over";
+    var t = this;
+    var p = {x: t.canvas.width/2 - t.viewport.width()/2, y: t.canvas.height/2  - t.viewport.height()/2};
+    var currentCells = this.map.getCurrentCells();
+    currentCells.forEach(function(cell){
+      ctx.fillStyle = cell.fillStyle;
+      ctx.fillRect(p.x + cell.x, p.y + cell.y, 1, 1);
+    });
+    ctx.stroke();
+  }
+}
+
+export class Navigation{
+  constructor(target, map){
+    this.target = target;
+    this.map = map;
+
+    this.panel = $("<div></div>");
+    this.panel.css({"position": "absolute", "float":"right", "right": "10px", "bottom": "5px"});
+    this.minimap = new MiniMap(this.panel, map, this);
+    this.target.append(this.panel[0]);
+    this.jumppoints = [];
+    for(var i = 0; i < 10; ++i){
+      this.jumppoints.push({x: 0, y:0});
+    }
+    this.prepareListener();
+
+  }
+
+  prepareListener(){
+    var t = this;
+    this.map.on("touchmove", function(evt){evt.which=1; t.onMouseMove(evt);});
+    this.map.on("touchstart", function(evt){evt.which=1; t.onMouseDown(evt);});
+    this.map.on("touchend", function(evt){evt.which=1; t.onMouseUp(evt);});
+    this.map.on("mousemove", function(evt){t.onMouseMove(evt);});
+    this.map.on("mousedown", function(evt){t.onMouseDown(evt);});
+    this.map.on("mouseup", function(evt){t.onMouseUp(evt);});
+    if (this.map.canvas.addEventListener) {
+      // IE9, Chrome, Safari, Opera
+      this.map.canvas.addEventListener("mousewheel", function(evt){t.onMouseWheel(evt);}, false);
+      // Firefox
+      this.map.canvas.addEventListener("DOMMouseScroll", function(evt){t.onMouseWheel(evt);}, false);
+    }
+    // IE 6/7/8
+    else this.map.canvas.attachEvent("onmousewheel", function(evt){t.onMouseWheel(evt);});
+
+    $("body").on("keydown", function(evt){
+      t.onKeyDown(evt);
+    });
+  }
+
+  onMouseWheel(event){
+    var evt = window.event || event;
+    var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
+    if(delta < 0){
+      if(evt.shiftKey){
+        this.translate(1, 0);
+      }else{
+        this.translate(0, -1);
+      }
+    }else{
+      if(evt.shiftKey){
+        this.translate(-1, 0);
+      }else{
+        this.translate(0, 1);
+      }
+    }
+  }
+
+  onMouseUp(evt){
+    if(evt.which == 2){
+      this.map.scale("reset");
+    }
+  }
+
+  onMouseDown(evt){
+  }
+
+  onMouseMove(evt){
+  }
+
+  onResize(evt){
+    this.minimap.viewport.css("width", this.map.canvas.width / (this.minimap.scale*4));
+    this.minimap.viewport.css("height", this.map.canvas.height / (this.minimap.scale*4));
+    this.minimap.viewport.css("left", this.minimap.canvas.width/2 - this.minimap.viewport.width()/2);
+    this.minimap.viewport.css("top", this.minimap.canvas.height/2 - this.minimap.viewport.height()/2);
+    this.minimap.canvas.width = this.minimap.map.canvas.width / this.minimap.scale;
+    this.minimap.canvas.height = this.minimap.map.canvas.height / this.minimap.scale;
+    this.minimap.render();
+  }
+
+  onKeyDown(evt){
+    if(evt.which == 87 || evt.which == 38){
+      this.translate(0, 1);
+    }else if(evt.which == 65 || evt.which == 37){
+      this.translate(1, 0);
+    }else if(evt.which == 83 || evt.which == 40){
+      this.translate(0, -1);
+    }else if(evt.which == 68 || evt.which == 39){
+      this.translate(-1, 0);
+    }else if(evt.which == 187){
+      this.map.scale("in");
+    }else if(evt.which == 189){
+      this.map.scale("out");
+    }else if(evt.which == 48){
+      this.map.scale("reset");
+    }else if(evt.which == 27 || evt.which == 32){
+      this.jump(-1);
+      //this.map.changeCellSize(32); // TODO
+    }else if(evt.which == 192 || evt.which == 8){
+      this.jump(9);
+    }else if(evt.which >= 49 && evt.which <= 57){
+      var jp = this.jumppoints[evt.which-49];
+      if(evt.shiftKey){
+        jp.x = this.map.translation.x;
+        jp.y = this.map.translation.y;
+      }else{
+        this.jump(evt.which-49);
+      }
+    }else if(evt.which == 82){
+      this.onResize();
+    }else{
+      //console.debug(evt.which);
+    }
+  }
+
+  translate(x, y){
+    this.minimap.canvas.getContext("2d").translate(x, y);
+    this.map.translate(x, y);
+  }
+
+  jump(i){
+    if(i == 9){
+      var translation = {x: this.map.translation.x, y: this.map.translation.y};
+      this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x), (-this.map.translation.y + this.jumppoints[i].y));
+      this.map.translate(-this.map.translation.x + this.jumppoints[i].x, -this.map.translation.y + this.jumppoints[i].y);
+      this.jumppoints[9].x = translation.x;
+      this.jumppoints[9].y = translation.y;
+    }else{
+      this.jumppoints[9].x = this.map.translation.x;
+      this.jumppoints[9].y = this.map.translation.y;
+      if(i == -1){
+        this.minimap.canvas.getContext("2d").translate(-this.map.translation.x, -this.map.translation.y);
+        this.map.translate(-this.map.translation.x, -this.map.translation.y);
+      }else{
+        this.minimap.canvas.getContext("2d").translate((-this.map.translation.x + this.jumppoints[i].x), (-this.map.translation.y + this.jumppoints[i].y));
+        this.map.translate(-this.map.translation.x + this.jumppoints[i].x, -this.map.translation.y + this.jumppoints[i].y);
+      }
+    }
+  }
+}
