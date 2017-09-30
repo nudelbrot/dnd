@@ -13,6 +13,9 @@ export class PencilTool extends SculptureTool {
     this.shifted = { x: undefined, y: undefined, direction: undefined, reset: function () { this.x = undefined; this.y = undefined; this.direction = undefined; } };
   }
   onMouseDown(evt) {
+    if (evt.ctrlKey) {
+      return;
+    }
     this.mouseDown = true;
     if (evt.which == 1) {
       this.newColor = this.foregroundColor;
@@ -21,6 +24,9 @@ export class PencilTool extends SculptureTool {
     }
   }
   onMouseUp(evt) {
+    if (evt.ctrlKey) {
+      return;
+    }
     this.mouseDown = false;
     if (this.drawn.length == 0){
       var pos = this.evtToCoordinates(evt);
@@ -81,3 +87,4 @@ export class PencilTool extends SculptureTool {
     }
   }
 }
+PencilTool.register(1);

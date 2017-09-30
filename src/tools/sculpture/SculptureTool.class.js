@@ -2,12 +2,10 @@ import {Tool} from "../Tool.class";
 import {Command} from "../../map/History.class";
 
 export class SculptureTool extends Tool {
-  constructor(toolbar, foregroundColorPicker, backgroundColorPicker) {
+  constructor(toolbar) {
     super(toolbar);
     this.foregroundColor = "#000000";
     this.backgroundColor = "#ffffff";
-    this.foregroundColorPicker = foregroundColorPicker;
-    this.backgroundColorPicker = backgroundColorPicker;
     this.latestColors = [];
     this.drawn = [];
     this.newColor = undefined;
@@ -16,7 +14,6 @@ export class SculptureTool extends Tool {
   addSize() {
     var body = this.panel.find(".panel-body");
   }
-
   changeCellFillstyle(x, y, fillStyle, render = true) {
     if (this.map.fillStyle == fillStyle) {
       if (this.map.isCell(x, y)) {
@@ -41,14 +38,14 @@ export class SculptureTool extends Tool {
       var pos = this.evtToCoordinates(evt);
       pos.x = Math.floor(pos.x);
       pos.y = Math.floor(pos.y);
-      var picker = this.backgroundColorPicker;
+      var picker = this.toolbar.backgroundColorPicker;
       if (evt.type == "click") {
-        picker = this.foregroundColorPicker;
+        picker = this.toolbar.foregroundColorPicker;
       }
       if (this.map.isCell(pos.x, pos.y)) {
-        picker.colorpicker("setValue", this.map.getCell(pos.x, pos.y).fillStyle);
+        picker.setColor(this.map.getCell(pos.x, pos.y).fillStyle);
       } else {
-        picker.colorpicker("setValue", this.map.fillStyle);
+        picker.setColor(this.map.fillStyle);
       }
       return true;
     }
@@ -76,22 +73,18 @@ class SculptureCommand extends Command {
     this.map = sculptureTool.map;
     this.listOfCoords = listOfCoords;
     this.newColor = newColor;
-    //console.debug(this)
   }
+
   redo() {
     var t = this;
-    this.listOfCoords.forEach(function (coord) {
-      t.sculptureTool.changeCellFillstyle(coord.x, coord.y, t.newColor, false);
-    });
+    this.listOfCoords.forEach((coord) => this.sculptureTool.changeCellFillstyle(coord.x, coord.y, this.newColor, false));
     this.map.render();
     this.map.historyIndex++;
   }
 
   undo() {
     var t = this;
-    this.listOfCoords.forEach(function (coord) {
-      t.sculptureTool.changeCellFillstyle(coord.x, coord.y, coord.oldC, false);
-    });
+    this.listOfCoords.forEach((coord) => this.sculptureTool.changeCellFillstyle(coord.x, coord.y, coord.oldC, false));
     this.map.render();
     this.map.historyIndex--;
   }

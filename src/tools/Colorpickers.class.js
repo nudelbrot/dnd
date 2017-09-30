@@ -1,5 +1,5 @@
 export class Colorpicker{
-  constructor(id, initialColor = "#000000"){
+  constructor(id, initialColor){
     this.color = initialColor;
     this.ui = $('<button id="' + id + '" class="btn btn-default">' +
       '<span class="material-icons">lens</span>' +
@@ -11,6 +11,10 @@ export class Colorpicker{
       this.color = color;
       $(this).trigger("changeColor", color);
     });
+  }
+
+  setColor(color){
+    this.ui.colorpicker("setValue", color);
   }
 
   static get DEFAULT_COLORS() {
@@ -27,22 +31,3 @@ export class Colorpicker{
     };
   }
 }
-
-//addColorpickers() {
-//  this.backgroundColorPicker = $('<button id="bgCp" class="btn btn-default">' +
-//      '<span class="material-icons">lens</span>' +
-//      '</button>');
-//  this.backgroundColorPicker.on("click", function () { t.backgroundColorPicker.colorpicker("show"); });
-//  this.backgroundColorPicker.colorpicker({ "color": this.backgroundColor, "colorSelectors": defaultColors }).on("changeColor", function (e) {
-//      var color = t.backgroundColorPicker.colorpicker("getValue");
-//      t.backgroundColorPicker.find("span").css("color", color);
-//      t.backgroundColor = color;
-//      t.pencil.backgroundColor = color;
-//      t.bucket.backgroundColor = color;
-//      t.path.backgroundColor = color;
-//      });
-//  var btnGrp = $("<div class='btn-group'></div>");
-//  btnGrp.append(this.foregroundColorPicker);
-//  btnGrp.append(this.backgroundColorPicker);
-//  this.form.append(btnGrp);
-//}

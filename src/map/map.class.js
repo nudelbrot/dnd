@@ -210,8 +210,9 @@ export class RectMap extends History{
     }
     );
     var ppi = 72;
-    ctx.canvas.width = (viewport.maxX - viewport.minX + 1)*ppi;
-    ctx.canvas.height = (viewport.maxY - viewport.minY + 1)*ppi;
+    var eps = 1;
+    ctx.canvas.width = (viewport.maxX - viewport.minX + 1)*ppi + eps;
+    ctx.canvas.height = (viewport.maxY - viewport.minY + 1)*ppi + eps;
     ctx.translate(-viewport.minX * ppi, -viewport.minY * ppi);
     currentCells.forEach(function(cell){
       if(cell.x <= maxX && cell.x >= minX && cell.y <= maxY && cell.y >= minY){

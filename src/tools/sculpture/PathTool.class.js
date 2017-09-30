@@ -39,17 +39,13 @@ export class PathTool extends SculptureTool {
           }
           if (this.positions.length == 2) {
             var vline = this.line(this.positions[0].x, this.positions[0].y, this.positions[1].x, this.positions[1].y, this.newColor);
-            vline.forEach(function (pos) {
-                t.changeCellFillstyle(pos.x, pos.y, t.newColor, false);
-                });
+            vline.forEach((pos) => this.changeCellFillstyle(pos.x, pos.y, this.newColor, false));
             this.drawn = vline;
             this.positions = [];
           }
         }
       }
-      this.previewPositions.forEach(function (p) {
-          t.map.removeCell(p.x, p.y, -1);
-          });
+      this.previewPositions.forEach((p) => this.map.removeCell(p.x, p.y, -1));
       this.commitSculptureCommand();
       this.map.render();
     }
@@ -63,18 +59,12 @@ export class PathTool extends SculptureTool {
     if (this.positions.length > 0) {
       if (this.latest.x != pos.x || this.latest.y != pos.y) {
         var t = this;
-        this.previewPositions.forEach(function (p) {
-            t.map.removeCell(p.x, p.y, -1);
-            });
+        this.previewPositions.forEach((p) => this.map.removeCell(p.x, p.y, -1));
         this.previewPositions = [];
         this.latest.x = pos.x;
         this.latest.y = pos.y;
         this.previewPositions = this.line(this.positions[0].x, this.positions[0].y, pos.x, pos.y);
-        this.previewPositions.forEach(function (p) {
-            t.map.getCell(p.x, p.y, -1);
-            t.map.data[-1][p.x][p.y] = "#ff00ff";
-
-            });
+        this.previewPositions.forEach((p) => { t.map.getCell(p.x, p.y, -1); t.map.data[-1][p.x][p.y] = "#ff00ff"; });
         this.map.render();
       }
     }
@@ -99,3 +89,4 @@ export class PathTool extends SculptureTool {
     return line;
   }
 }
+PathTool.register(2);

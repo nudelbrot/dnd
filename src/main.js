@@ -2,10 +2,9 @@ import {RectMap} from "./map/map.class";
 import {Navigation} from "./map/navigation.class";
 import {Toolbar} from "./tools/Toolbar.class";
 
-class Dnd {
+export class Dnd {
   constructor(target) {
     this.target = target;
-
     this.prepArrayEqualsAndContains();
     this.map = new RectMap(target);
     this.toolbar = new Toolbar($(".collapse"), this.map);
@@ -101,5 +100,13 @@ class Dnd {
       return result;
     };
   }
+  static instance(){
+    if(!Dnd.singleInstance){
+      Dnd.singleInstance = new Dnd($("#target"));
+    }
+    return Dnd.singleInstance;
+  }
 }
-$(()=> new Dnd($("#target")));
+$(()=> {
+  Dnd.instance();
+});

@@ -124,3 +124,4 @@ export class BucketTool extends SculptureTool {
     }
   }
 }
+BucketTool.register(3);

@@ -1,3 +1,5 @@
+import {Dnd} from "../main";
+
 export class Tool {
   constructor(toolbar) {
     this.toolbar = toolbar;
@@ -7,6 +9,7 @@ export class Tool {
     this.panel = $("<div class='panel panel-default toolSettings'></div>");
     this.panel.append($("<div class='panel-body'></div>"));
     this.cursor = { id: "default", dx: 0, dy: 0 };
+    this.index = 0;
   }
   onMouseMove(self, evt) {
   }
@@ -15,6 +18,14 @@ export class Tool {
   onMouseDown(self, evt) {
   }
   onClick(self, evt) {
+  }
+
+  static register(index){
+    if(!Tool.tools){
+      Tool.tools = [];
+    }
+    this.index = index;
+    Tool.tools.push(this);
   }
 
   evtToCoordinates(evt) {

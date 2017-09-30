@@ -1,101 +1,74 @@
-import {PathTool} from "./sculpture/PathTool.class";
-import {BucketTool} from "./sculpture/BucketTool.class";
-import {PencilTool} from "./sculpture/PencilTool.class";
+import {Tool} from "./Tool.class";
 import {Colorpicker} from "./Colorpickers.class";
+import {RectMap} from "../map/map.class";
 
 export class Toolbar {
   constructor(target, map) {
     this.map = map;
+    this.tools = [];
+    this.setupUI();
+    this.setupEvents();
+    this.customCursor = false;
+    target.append(this.panel[0]);
+  }
+
+  setupUI(){
     this.panel = $('<div id="tb_panel" class="text-center"></div>');
     this.form = $("<div></div>", { "class": "navbar-form form-group" });
     this.panel.append(this.form[0]);
-    this.foregroundColor = "#000000";
-    this.backgroundColor = "#ffffff";
     this.setupColorpicker();
-    this.addTools();
+    this.setupTools();
     this.addUndoRedoButtons();
     this.addPixelSizeSlider();
     this.form.children().css('padding-right', '10px');
-    this.customCursor = false;
-    //TODO this.backgroundColorPicker.colorpicker("setValue", this.map.fillStyle);
-    target.append(this.panel[0]);
-    var t = this;
-    $(this.map.canvas).bind('contextmenu', function (e) {
-      t.onClick(e);
-      return false;
-    });
+  }
 
-    this.map.on("click", function (evt) { t.onClick(evt); });
-    this.map.on("mouseup", function (evt) { t.onMouseUp(evt); });
-    this.map.on("mousedown", function (evt) { t.onMouseDown(evt); });
-    this.map.on("mousemove", function (evt) { t.onMouseMove(evt); });
-    this.map.on("touchend", function (evt) {evt.which=1; t.onMouseUp(evt); });
-    this.map.on("touchstart", function (evt) {evt.which=1; t.onMouseDown(evt); });
-    this.map.on("touchmove", function (evt) {evt.which=1; console.debug(evt); t.onMouseMove(evt); });
+  setupEvents(){
+    $(this.map.canvas).bind('contextmenu', (e) => { this.onClick(e); return false;});
+    this.map.on("click", (evt) => { this.onClick(evt); });
+    this.map.on("mouseup", (evt) => { this.onMouseUp(evt); });
+    this.map.on("mousedown", (evt) => { this.onMouseDown(evt); });
+    this.map.on("mousemove", (evt) => { this.onMouseMove(evt); });
+    this.map.on("touchend", (evt) => {evt.which=1; this.onMouseUp(evt); });
+    this.map.on("touchstart", (evt) => {evt.which=1; this.onMouseDown(evt); });
+    this.map.on("touchmove", (evt) => {evt.which=1; console.debug(evt); this.onMouseMove(evt); });
   }
 
   setupColorpicker(){
-    this.foregroundColorPicker = new Colorpicker("fgCp", "#000000");
-    this.backgroundColorPicker = new Colorpicker("bgCp", this.map.fillStyle);
+    this.foregroundColorPicker = new Colorpicker("fgCp");
+    this.backgroundColorPicker = new Colorpicker("bgCp");
     var btnGrp = $("<div class='btn-group'></div>");
     btnGrp.append(this.foregroundColorPicker.ui);
     btnGrp.append(this.backgroundColorPicker.ui);
     this.form.append(btnGrp);          
+    this.backgroundColorPicker.ui.colorpicker("setValue", this.map.fillStyle);
   }
 
-  addTools() {
-    //this.rectSelector = new RectSelectionTool(this);
-    //this.magicStick = new MagicStickTool(this);
-    this.pencil = new PencilTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
-    this.bucket = new BucketTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
-    this.path = new PathTool(this, this.foregroundColorPicker, this.backgroundColorPicker);
-
-    var grp = $('<div class="btn-group" role="group"></div>');
-
-    //grp.append(this.rectSelector.button);
-    //grp.append(this.magicStick.button);
-    grp.append(this.pencil.button);
-    grp.append(this.path.button);
-    grp.append(this.bucket.button);
-    var t = this;
-
-    this.path.button.on("click", function () {
-      t.setActiveTool(t.path);
+  setupTools() {
+    var grp = $('<div id="toolBtnGroup" class="btn-group" role="group"></div>');
+    Tool.tools.sort( function (a, b){ return b.index < a.index;});
+    Tool.tools.forEach((tool) =>{
+      var newTool = new tool(this);
+      grp.append(newTool.button);
+      newTool.button.on("click", () => this.setActiveTool(newTool));
+      $(this.foregroundColorPicker).on("changeColor", (e, color) => newTool.foregroundColor = color);
+      $(this.backgroundColorPicker).on("changeColor", (e, color) => newTool.backgroundColor = color);
+      this.tools.push(new tool(this));
     });
-    //this.rectSelector.button.on("click", function () {
-    //  t.setActiveTool(t.rectSelector);
-    //});
-    //this.magicStick.button.on("click", function () {
-    //  t.setActiveTool(t.magicStick);
-    //});
-    this.pencil.button.on("click", function () {
-      t.setActiveTool(t.pencil);
-    });
-    this.bucket.button.on("click", function () {
-      t.setActiveTool(t.bucket);
-    });
-
-    this.activeTool = this.pencil;
-    this.setActiveTool(this.pencil);
-    //form.append(grp);
     this.form.prepend(grp);
+
+    if(this.tools.length > 0){
+      this.activeTool = this.tools[0];
+      this.setActiveTool(this.tools[0]);
+    }
 
   }
 
   addUndoRedoButtons() {
     this.buttonUndo = $('<button id="UndoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "undo" + '</span></button>');
     this.buttonRedo = $('<button id="RedoButton" type="button" class="btn  btn-default disabled"> <span class="material-icons">' + "redo" + '</span></button>');
-
-    var t = this;
-    this.buttonUndo.on("click", function () {
-      t.map.backward();
-      t.checkUndoAndRedoButton();
-    });
-
-    this.buttonRedo.on("click", function () {
-      t.map.forward();
-      t.checkUndoAndRedoButton();
-    });
+    this.buttonUndo.on("click", () => { this.map.backward(); this.checkUndoAndRedoButton(); });
+    this.buttonRedo.on("click", () => { this.map.forward(); this.checkUndoAndRedoButton(); });
     var btnGrp = $("<div class='btn-group'></div>");
     btnGrp.append(this.buttonUndo);
     btnGrp.append(this.buttonRedo);
@@ -117,19 +90,9 @@ export class Toolbar {
 
   addPixelSizeSlider(){
     this.slider = $('<div id="slider"></div>');
-    this.slider.css("width", "100px");
-    this.slider.css("display", "inline-block");
-    this.slider.css("padding-left", "10px");
-    this.slider.slider({
-      range: "min",
-      value: 32,
-      min: 8,
-      max: 56,
-    });
-    var t = this;
-    this.slider.on("slide", function(event, ui){
-      t.map.changeCellSize(ui.value);
-    });
+    this.slider.css({ "width": "100px", "display": "inline-block", "padding-left": "10px" });
+    this.slider.slider({ range: "min", value: 32, min: 8, max: 56 });
+    this.slider.on("slide", (event, ui) => this.map.changeCellSize(ui.value));
     this.form.append(this.slider);
   }
 

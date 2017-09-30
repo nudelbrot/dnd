@@ -28,14 +28,8 @@ class MiniMap{
     this.drag = false;
     $(this.canvas).on("mousedown", function(evt){t.drag = true;});
     $(this.canvas).on("mouseup", function(evt){t.drag = false;});
-    this.viewport.on("click", 
-      function(evt){ 
-        t.navigation.translate(t.viewport.width()/2 - evt.offsetX, t.viewport.height()/2 - evt.offsetY);
-      });
-    $(this.canvas).on("click", 
-      function(evt){ 
-        t.navigation.translate(t.canvas.width/2 - evt.offsetX, t.canvas.height/2 - evt.offsetY);
-      });
+    this.viewport.on("click", (evt) => this.navigation.translate(t.viewport.width()/2 - evt.offsetX, t.viewport.height()/2 - evt.offsetY));
+    $(this.canvas).on("click", (evt) => this.navigation.translate(t.canvas.width/2 - evt.offsetX, t.canvas.height/2 - evt.offsetY));
     this.map.on("render", function(){t.render();});
 
   }
@@ -45,8 +39,7 @@ class MiniMap{
     ctx.rect(0,0,0,0);
     ctx.stroke();
     ctx.globalCompositeOperation = "source-over";
-    var t = this;
-    var p = {x: t.canvas.width/2 - t.viewport.width()/2, y: t.canvas.height/2  - t.viewport.height()/2};
+    var p = {x: this.canvas.width/2 - this.viewport.width()/2, y: this.canvas.height/2  - this.viewport.height()/2};
     var currentCells = this.map.getCurrentCells();
     currentCells.forEach(function(cell){
       ctx.fillStyle = cell.fillStyle;
