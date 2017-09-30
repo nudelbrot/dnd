@@ -9,7 +9,7 @@ class MiniMap{
         this.div.css("position", "relative");
         this.div.append(this.canvas);
         this.target.append(this.div);
-        this.scale = 5
+        this.scale = 5;
         var ctx = this.canvas.getContext("2d");
         ctx.canvas.width = this.map.canvas.width / this.scale;
         ctx.canvas.height = this.map.canvas.height / this.scale;
@@ -95,8 +95,8 @@ class MiniMap{
         });
     }
 
-    onMouseWheel(evt){
-      var evt = window.event || evt;
+    onMouseWheel(event){
+      var evt = window.event || event;
       var delta = Math.max(-1, Math.min(1, (evt.wheelDelta || -evt.detail)));
         if(delta < 0){
             if(evt.shiftKey){

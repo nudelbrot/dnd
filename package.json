@@ -1,0 +1,19 @@
+{
+  "name": "Maptool",
+  "version": "0.1.0",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "grunt": "^0.4.5",
+    "grunt-babel": "^7.0.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-jshint": "latest",
+    "grunt-contrib-nodeunit": "~0.4.1",
+    "grunt-contrib-qunit": "^2.0.0",
+    "grunt-contrib-uglify": "latest",
+    "load-grunt-tasks": "^3.5.2"
+  },
+  "dependencies": {
+    "grunt-contrib-watch": "^1.0.0"
+  }
+}

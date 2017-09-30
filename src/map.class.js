@@ -1,15 +1,16 @@
-class RectMap {
+class RectMap extends History{
   constructor(target, cellWidth=32, cellHeight=32) {
+    super();
     this.canvas = $("<canvas></canvas>")[0];
     var t = this;
     $("html").css("overflow", "hidden");
-    this.width = function(){return Math.ceil($(target).width()/t.cellWidth);}
-    this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/t.cellHeight);}
+    this.width = function(){return Math.ceil($(target).width()/t.cellWidth);};
+    this.height = function(){return Math.ceil(($(window).height()-$(target).offset().top)/t.cellHeight);};
 
     var ctx = this.canvas.getContext("2d");
     this.cellWidth = cellWidth;
     this.cellHeight = cellHeight;
-    this.translation = {x: 0, y: 0, X: function(){return t.translation.x * t.cellWidth}, Y: function(){return t.translation.y * t.cellHeight}};
+    this.translation = {x: 0, y: 0, X: function(){return t.translation.x * t.cellWidth;}, Y: function(){return t.translation.y * t.cellHeight;}};
     this.scaleLevel = 1.0;
     this.gridColor = "#dddddd";
     this.fillStyle = "#fbfbfb";
@@ -24,19 +25,19 @@ class RectMap {
 
   changeCellSize(newSize){
     var oldTranslation = {x: this.translation.x, y: this.translation.y};
-    this.translate(-oldTranslation.x, -oldTranslation.y)
+    this.translate(-oldTranslation.x, -oldTranslation.y);
     this.cellWidth = newSize;
     this.cellHeight = newSize;
-    this.translate(oldTranslation.x, oldTranslation.y)
+    this.translate(oldTranslation.x, oldTranslation.y);
   }
 
   newCommand(command, toolbar){
     if (this.history.length > 0){
-      this.history = this.history.slice(0, this.historyIndex+1)
+      this.history = this.history.slice(0, this.historyIndex+1);
     }
-    this.history.push(command)
+    this.history.push(command);
     this.historyIndex++;
-    toolbar.checkUndoAndRedoButton()
+    toolbar.checkUndoAndRedoButton();
   }
 
   getCell(x, y, z=0) {
@@ -114,7 +115,7 @@ class RectMap {
     var cell = this.getCell(x, y);
     cell.fillStyle = fillStyle;
     if (render){
-      cell.render()
+      cell.render();
       if(this.onRenderFunction){
         this.onRenderFunction();
       }
@@ -176,7 +177,7 @@ class RectMap {
 
 
   toJson(){
-    var toExport = {fs: this.fillStyle, data: []}
+    var toExport = {fs: this.fillStyle, data: []};
     var currentCells = this.getCurrentCells();
     currentCells.forEach(function(cell){
       toExport.data.push({x: cell.x, y: cell.y, fs: cell.fillStyle});
@@ -184,8 +185,8 @@ class RectMap {
 
     var url = 'data:text/json;charset=utf8,' + encodeURIComponent(JSON.stringify(toExport));
     var anchor = $("#saveJSON")[0];
-    anchor.setAttribute("href", url)
-    anchor.setAttribute("download", "map.json")
+    anchor.setAttribute("href", url);
+    anchor.setAttribute("download", "map.json");
 
   }
 
@@ -201,7 +202,7 @@ class RectMap {
   toPNG(minX = -Number.MAX_VALUE, minY = -Number.MAX_VALUE, maxX = Number.MAX_VALUE, maxY = Number.MAX_VALUE){
     var canvas = $("<canvas></canvas>");
     var ctx = canvas[0].getContext("2d");
-    var viewport = {minX: Number.MAX_VALUE, minY: Number.MAX_VALUE, maxX: -Number.MAX_VALUE, maxY: -Number.MAX_VALUE }
+    var viewport = {minX: Number.MAX_VALUE, minY: Number.MAX_VALUE, maxX: -Number.MAX_VALUE, maxY: -Number.MAX_VALUE };
 
     var currentCells = this.getCurrentCells();
     currentCells.forEach(function(cell){
@@ -223,9 +224,9 @@ class RectMap {
     ctx.stroke();
     var url = canvas[0].toDataURL("image/png");
     var anchor = $("#exportPNG")[0];
-    anchor.setAttribute("href", url)
+    anchor.setAttribute("href", url);
     //a.setAttribute("target", "_blank")
-    anchor.setAttribute("download", "map.png")
+    anchor.setAttribute("download", "map.png");
 
   }
 

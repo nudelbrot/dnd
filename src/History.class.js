@@ -1,6 +1,10 @@
 class Command {
-  redo(){}
-  undo(){}
+  redo(){
+        throw new Error("Abstract method!");
+  }
+  undo(){
+        throw new Error("Abstract method!");
+  }
 }
 
 class History {
@@ -26,7 +30,7 @@ class History {
   doCommand(command){
     if(command instanceof nCommand){
       if(this.pointer < this.stack.length){
-        this.stack.splice(this.pointer, this.stack.length)
+        this.stack.splice(this.pointer, this.stack.length);
       }
       this.stack.push(command);
       this.pointer++;

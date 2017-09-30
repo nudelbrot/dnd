@@ -8,7 +8,7 @@ class Cell {
     this.strokeStyle = "#ffffff";
     this.lineWidth = 1;
     this.highlight = false;
-    this.highlightStyle = "#ff0000"
+    this.highlightStyle = "#ff0000";
   }
   render(ctx, stroke=true, cellWidth=this.map.cellWidth, cellHeight=this.map.cellHeight){
     if(!ctx){
